@@ -19,10 +19,11 @@ scenes = {
 }
 
 
-
 H = hnx.Hypergraph(scenes)
 
-print(list(H.nodes))
+# # Visualise hypergraph for verification purposes
+# hnx.drawing.draw(H,with_edge_labels = False, layout_kwargs = {'seed': 39})
+# plt.savefig('test.pdf')
 
 
 nodes = list(H.nodes)
@@ -32,16 +33,16 @@ bucket = {} # mapping of number of neighbors, say n, to nodes with exactly n nei
 
 
 # auxiliary data, that improves efficiency
-node_to_neighbors = {} # Not necessary, I guess
+# node_to_neighbors = {} # Not necessary, I guess
 node_to_num_neighbors = {} # inverse bucket
-removed_nodes = []
+# removed_nodes = []
 
 
 # Initial bucket fill-up
 for node in nodes:
     neighbors = list(H.neighbors(node))
     len_neighbors = len(neighbors) # this computation can be repeated
-    node_to_neighbors[node] = neighbors
+    # node_to_neighbors[node] = neighbors
     node_to_num_neighbors[node] = len_neighbors
     # print(node, neighbors)
     if(len_neighbors not in bucket):
@@ -50,8 +51,8 @@ for node in nodes:
         bucket[len_neighbors].append(node)
 
 print("\n---------- Initial neighbors -------")
-for node in node_to_neighbors:
-    print(node, node_to_neighbors[node])
+for node in H.nodes:
+    print(node, H.neighbors(node))
 print()
 
 
@@ -62,36 +63,36 @@ print()
 for k in range(1, num_nodes + 1):
     
     # TODO Discuss with Naheed vai about this case
-    if(k not in bucket):
-        continue
+    # if(k not in bucket):
+    #     continue
 
     # Inner while loop
-    assert k in bucket
-    while len(bucket[k]) != 0:
+    # assert k in bucket
+    while len(bucket.get(k,[])) != 0:
         v = bucket[k].pop(0) # get first element in the
         print("k:", k, "node:", v)
         core[v] = k
-        temp_nodes = nodes.copy()
+        temp_nodes = list(H.nodes)
         temp_nodes.remove(v) # V' <- V \ {v}
-        removed_nodes.append(v)
+        # removed_nodes.append(v)
         # print(nodes)
 
+        H_temp = H.restrict_to_nodes(temp_nodes)
 
         # enumerating over all neighbors of v
-        for u in node_to_neighbors[v]:
+        for u in H.neighbors(v):
+        # for u in node_to_neighbors[v]:
 
             """
                 In each iteration, v is removed. Therefore, node_to_neighbors has to be updated too. 
                 Alternate implementation is to only consider remaining neighbors of v that are not yet removed.
             """
-            if(u in removed_nodes):
-                continue
+            # if(u in removed_nodes):
+            #     continue
 
 
             print(node_to_num_neighbors)
 
-
-            H_temp = H.restrict_to_nodes(temp_nodes)
             print("Considering neighbor", u)
             neighbors_u = list(H_temp.neighbors(u))
             len_neighbors_u = len(neighbors_u) # repeated computaion, hence a variable is declared
@@ -116,13 +117,12 @@ for k in range(1, num_nodes + 1):
             print(bucket)
             print()
         
-        nodes = temp_nodes
+        # nodes = temp_nodes
+        H = H_temp
 
 
 print("\n\nOutput")
 print(core)
-    
-    
 
 
 
