@@ -1,9 +1,12 @@
 import sys
-
+import os
 sys.path.append("HyperNetX")
 import hypernetx as hnx
-
 import utils
+import pandas as pd
+
+
+verbose = True
 
 scenes = {
     0: ('FN', 'TH'),
@@ -21,6 +24,7 @@ H = hnx.Hypergraph(scenes)
 # # Visualise hypergraph for verification purposes
 # hnx.drawing.draw(H,with_edge_labels = False, layout_kwargs = {'seed': 39})
 # plt.savefig('test.pdf')
+
 
 
 nodes = list(H.nodes)
@@ -45,6 +49,11 @@ for node in nodes:
         bucket[len_neighbors] = [node]
     else:
         bucket[len_neighbors].append(node)
+
+entry = {}
+# add more keys here as per necessity
+entry['bucket size'] = len(bucket)
+entry['bucket update'] = 0
 
 print("\n---------- Initial neighbors -------")
 for node in H.nodes:
@@ -99,6 +108,7 @@ for k in range(1, num_nodes + 1):
                 bucket[max_value] = [u]
             else:
                 bucket[max_value].append(u)
+                entry['bucket update'] += 1
 
             # update new location of u
             node_to_num_neighbors[u] = max_value
@@ -112,3 +122,19 @@ for k in range(1, num_nodes + 1):
 
 print("\n\nOutput")
 print(core)
+
+
+
+# result dump
+result = pd.DataFrame()
+result = result.append(entry, ignore_index=True)
+os.system("mkdir -p output")
+result.to_csv('output/result.csv', header=False,
+                        index=False, mode='a')
+
+
+if(verbose):
+    print("\n\nColumns in pandas") 
+    print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+

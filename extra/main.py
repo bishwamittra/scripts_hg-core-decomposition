@@ -65,6 +65,8 @@ for k in range(1, num_nodes + 1):
     if(k not in bucket):
         continue
 
+    
+
     # Inner while loop
     assert k in bucket
     while len(bucket[k]) != 0:
