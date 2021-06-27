@@ -49,6 +49,15 @@ def get_number_of_nbrs(H, u):
     return len(nbrs)
 
 
+def get_degree(H, u):
+    degree = 0
+    try:
+        degree = H.degree(u)
+    except Exception as e:
+        print(e)
+    
+    return degree
+
 def get_nbrs(H, u):
     """
         Returns the neighbours of u in hypergraph H
