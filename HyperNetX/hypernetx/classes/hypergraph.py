@@ -804,7 +804,7 @@ class Hypergraph:
 
         """
         if not node in self.nodes:
-            print(f"Node is not in hypergraph {self.name}.")
+            # print(f"Node is not in hypergraph {self.name}.")
             return
 
         if self.isstatic:

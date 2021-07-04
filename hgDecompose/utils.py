@@ -54,7 +54,8 @@ def get_degree(H, u):
     try:
         degree = H.degree(u)
     except Exception as e:
-        print(e)
+        # print(e)
+        pass
     
     return degree
 

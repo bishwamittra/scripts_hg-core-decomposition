@@ -50,10 +50,6 @@ for node in nodes:
     else:
         bucket[len_neighbors].append(node)
 
-entry = {}
-# add more keys here as per necessity
-entry['bucket size'] = len(bucket)
-entry['bucket update'] = 0
 
 print("\n---------- Initial neighbors -------")
 for node in H.nodes:
@@ -81,7 +77,7 @@ for k in range(1, num_nodes + 1):
         temp_nodes.remove(v)  # V' <- V \ {v}
 
         # H_temp = H.restrict_to_nodes(temp_nodes) # (Naheed:) This is not what we want.
-        H_temp = utils.strong_subgraph(H, temp_nodes)
+        H_temp = utils.strong_subgraph(H, temp_nodes) # Store.... + executation time.. 
 
         # enumerating over all neighbors of v
         # for u in H.neighbors(v):
@@ -96,6 +92,7 @@ for k in range(1, num_nodes + 1):
             # print(u, 'has neighbors on sub-hypergraph:', neighbors_u)
 
             len_neighbors_u = utils.get_number_of_nbrs(H_temp, u)  # To avoid bug, we use our wrapper function.
+            # How many times is neighborhood computation done? and executation time...
 
             max_value = max(len_neighbors_u, k)
             print("max core between", k, 'and', len_neighbors_u, "is ", max_value)
@@ -110,6 +107,8 @@ for k in range(1, num_nodes + 1):
                 bucket[max_value].append(u)
                 entry['bucket update'] += 1
 
+            # How many times is bucket updated + executation time??? Store...
+
             # update new location of u
             node_to_num_neighbors[u] = max_value
 
@@ -121,7 +120,7 @@ for k in range(1, num_nodes + 1):
         H = H_temp
 
 print("\n\nOutput")
-print(core)
+print(core) # Store...
 
 
 
