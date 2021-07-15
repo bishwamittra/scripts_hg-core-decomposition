@@ -18,8 +18,10 @@ parser.add_argument("-v", "--verbose", action='store_true')
 
 args = parser.parse_args()
 
+# hyper-graph construction
+H = None
 if(args.dataset == "default"):
-    scenes = {
+    dic = {
         0: ('FN', 'TH'),
         1: ('TH', 'JV'),
         2: ('BM', 'FN', 'JA'),
@@ -30,15 +32,47 @@ if(args.dataset == "default"):
         7: ('MA', 'GP')
     }
 
-    H = hnx.Hypergraph(scenes)
+    H = hnx.Hypergraph(dic)
+
+elif(args.dataset in ['enron', "syn"]):
+
+    # file location
+    dataset_to_filename = {
+        "enron" : "data/real/Enron.hyp",
+        "syn" : "data/synthetic/syn.hyp"
+    }
+
+    # split by
+    dataset_to_split = {
+        "enron" : " ", 
+        "syn" : ","
+    }
+
+    
+    dic = {}
+    # read from file
+    with open(dataset_to_filename[args.dataset]) as f:
+        lines = f.readlines()
+
+        for idx, line in enumerate(lines):
+            edge = tuple(line[:-1].split(dataset_to_split[args.dataset]))
+            dic[idx] = edge
+
+    H = hnx.Hypergraph(dic)
+
+else:
+    raise RuntimeError(args.dataset + " is not defined or implemented yet")
+
+
+assert H is not None
 
 
 entry = {}
 entry['algo'] = args.algo
 entry['dataset'] = args.dataset
 
+# run algo
 hgDecompose = HGDecompose()
-
 if(args.algo == "naive_nbr"):
     hgDecompose.naiveNBR(H, verbose=False)
     
