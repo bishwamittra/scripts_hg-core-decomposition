@@ -38,8 +38,8 @@ elif(args.dataset in ['enron', "syn"]):
 
     # file location
     dataset_to_filename = {
-        "enron" : "data/real/Enron.hyp",
-        "syn" : "data/synthetic/syn.hyp"
+        "enron" : "data/datasets/real/Enron.hyp",
+        "syn" : "data/datasets/synthetic/syn.hyp"
     }
 
     # split by
@@ -99,6 +99,6 @@ if(args.verbose):
     print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
 os.system("mkdir -p data/output")
-result.to_csv('output/result.csv', header=False,
+result.to_csv('data/output/result.csv', header=False,
                         index=False, mode='a')
     
