@@ -74,10 +74,13 @@ entry['dataset'] = args.dataset
 # run algo
 hgDecompose = HGDecompose()
 if(args.algo == "naive_nbr"):
-    hgDecompose.naiveNBR(H, verbose=False)
+    hgDecompose.naiveNBR(H, verbose=args.verbose)
     
 elif(args.algo == "naive_degree"):
-    hgDecompose.naiveDeg(H, verbose=False)
+    hgDecompose.naiveDeg(H, verbose=args.verbose)
+
+elif(args.algo == "improved2_nbr"):
+    hgDecompose.improved2NBR(H, verbose=args.verbose)
 
 else:
     raise RuntimeError(args.algo + " is not defined or implemented yet")

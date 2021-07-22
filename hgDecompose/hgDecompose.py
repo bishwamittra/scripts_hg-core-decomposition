@@ -293,7 +293,7 @@ class HGDecompose():
         final_bucket = {}
         setlb = {}
         inv_bucket = {}
-
+        
         for lower, upper in gen:
             if(verbose):
                 print("Inverval [%d,%d]"%(lower, upper))
