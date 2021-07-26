@@ -208,9 +208,26 @@ class HGDecompose():
 
         self.execution_time = time() - start_execution_time
 
+    # Interval generator function (s is a parameter)
+    def generate_intervals(self, llb, lub, s = 1):
+        min_llb = min([llb[u] for u in llb])
+        ub_set = set([lub[u] for u in lub]).union([min_llb - 1])
+        sorted_ub_set = sorted(ub_set, reverse=True)
+        i = s
+        while i < len(ub_set):
+            yield sorted_ub_set[i] + 1, sorted_ub_set[i - s]
+            if i+s < len(ub_set):
+                i += s
+            else:
+                if i != len(ub_set) - 1:
+                    yield sorted_ub_set[-1] + 1, sorted_ub_set[i]
+                i += s
 
-    def improved2NBR(self, H, verbose = True):
-
+    def improved2NBR(self, H, s = 1, verbose = True):
+        """ 
+        :param H -> Hypergraph
+        :param s -> Integer, algorithm parameter. 
+        """
         start_execution_time = time()
 
         nodes = list(H.nodes)
@@ -273,23 +290,7 @@ class HGDecompose():
             print(sorted(llb.items()))
 
 
-        # Interval generator function (s is a parameter)
-        def generate_intervals(llb, lub, s=1):
-            min_llb = min([llb[u] for u in llb])
-            ub_set = set([lub[u] for u in lub]).union([min_llb - 1])
-            sorted_ub_set = sorted(ub_set, reverse=True)
-            i = s
-            while i < len(ub_set):
-                yield sorted_ub_set[i] + 1, sorted_ub_set[i - s]
-                if i+s < len(ub_set):
-                    i += s
-                else:
-                    if i != len(ub_set) - 1:
-                        yield sorted_ub_set[-1] + 1, sorted_ub_set[i]
-                    i += s
-
-
-        gen = generate_intervals(llb, lub, s=3)
+        gen = self.generate_intervals(llb, lub, s)
         final_bucket = {}
         setlb = {}
         inv_bucket = {}
