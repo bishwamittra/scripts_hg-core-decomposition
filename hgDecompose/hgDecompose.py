@@ -209,19 +209,24 @@ class HGDecompose():
         self.execution_time = time() - start_execution_time
 
     # Interval generator function (s is a parameter)
-    def generate_intervals(self, llb, lub, s = 1):
+    def generate_intervals(self, llb, lub, s = 1, verbose = False):
         min_llb = min([llb[u] for u in llb])
         ub_set = set([lub[u] for u in lub]).union([min_llb - 1])
         sorted_ub_set = sorted(ub_set, reverse=True)
-        i = s
-        while i < len(ub_set):
-            yield sorted_ub_set[i] + 1, sorted_ub_set[i - s]
-            if i+s < len(ub_set):
-                i += s
-            else:
-                if i != len(ub_set) - 1:
-                    yield sorted_ub_set[-1] + 1, sorted_ub_set[i]
-                i += s
+        if(verbose):
+            print('set of distinct values: ',sorted_ub_set)
+        if s >= len(ub_set):
+            yield sorted_ub_set[-1] + 1, sorted_ub_set[0]
+        else:
+            i = s
+            while i < len(ub_set):
+                yield sorted_ub_set[i] + 1, sorted_ub_set[i - s]
+                if i+s < len(ub_set):
+                    i += s
+                else:
+                    if i != len(ub_set) - 1:
+                        yield sorted_ub_set[-1] + 1, sorted_ub_set[i]
+                    i += s
 
     def improved2NBR(self, H, s = 1, verbose = True):
         """ 
@@ -290,7 +295,7 @@ class HGDecompose():
             print(sorted(llb.items()))
 
 
-        gen = self.generate_intervals(llb, lub, s)
+        gen = self.generate_intervals(llb, lub, s = s, verbose = verbose)
         final_bucket = {}
         setlb = {}
         inv_bucket = {}

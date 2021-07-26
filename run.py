@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 # hyper-graph construction
 H = get_hg(args.dataset)
-quit()
+
 assert H is not None
 
 
