@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import hypernetx as hnx
 from hgDecompose.hgDecompose import HGDecompose
+from hgDecompose.utils import get_hg
 import argparse
 import pandas as pd
 import os
@@ -22,51 +23,8 @@ parser.add_argument("--iterations", help="number of iterations", default=1, type
 args = parser.parse_args()
 
 # hyper-graph construction
-H = None
-if(args.dataset == "default"):
-    dic = {
-        0: ('FN', 'TH'),
-        1: ('TH', 'JV'),
-        2: ('BM', 'FN', 'JA'),
-        3: ('JV', 'JU', 'CH', 'BM'),
-        4: ('JU', 'CH', 'BR', 'CN', 'CC', 'JV', 'BM'),
-        5: ('TH', 'GP'),
-        6: ('GP', 'MP'),
-        7: ('MA', 'GP')
-    }
-
-    H = hnx.Hypergraph(dic)
-
-elif(args.dataset in ['enron', "syn"]):
-
-    # file location
-    dataset_to_filename = {
-        "enron" : "data/datasets/real/Enron.hyp",
-        "syn" : "data/datasets/synthetic/syn.hyp"
-    }
-
-    # split by
-    dataset_to_split = {
-        "enron" : " ", 
-        "syn" : ","
-    }
-
-    
-    dic = {}
-    # read from file
-    with open(dataset_to_filename[args.dataset]) as f:
-        lines = f.readlines()
-
-        for idx, line in enumerate(lines):
-            edge = tuple(line[:-1].split(dataset_to_split[args.dataset]))
-            dic[idx] = edge
-
-    H = hnx.Hypergraph(dic)
-
-else:
-    raise RuntimeError(args.dataset + " is not defined or implemented yet")
-
-
+H = get_hg(args.dataset)
+quit()
 assert H is not None
 
 

@@ -14,7 +14,7 @@ ulimit -v $memlimit
 
 
 # multithread
-python distribution.py --thread $mythread --max_thread $numthreads > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
+python -u distribution.py --thread $mythread --max_thread $numthreads > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
 
 # single thread
-# python distribution.py > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
+# python -u distribution.py > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
