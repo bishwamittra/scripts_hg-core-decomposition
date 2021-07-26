@@ -9,6 +9,7 @@ args = parser.parse_args()
 
 algo_list = ['naive_nbr', 'naive_degree', 'improved2_nbr']
 dataset_list = ['default', 'syn']
+param_s = [i+1 for i in range(10)]
 iterations = 10
 
 
@@ -17,18 +18,23 @@ iterations = 10
 configurations = []
 for algo in algo_list:
     for dataset in dataset_list:
-        configurations.append((algo, dataset))
+        if(algo in ['improved2_nbr']): # Additional param            
+            for s in param_s:    
+                configurations.append((algo, dataset, s))
+        else:
+            configurations.append((algo, dataset, 0))
 
 
 
 # print(len(configurations))
 # distributing among threads
 for i, configuration in enumerate(configurations):
-    algo, dataset = configuration
+    algo, dataset, s = configuration
     if(i%args.max_thread == args.thread or args.thread == -1):
         cmd = "python -W ignore run.py" + \
               " --algo " + algo + \
               " --dataset " + dataset + \
-              " --iterations " + str(iterations)
+              " --iterations " + str(iterations) + \
+              " --param_s " + str(s)
         print(cmd) 
         os.system(cmd) 

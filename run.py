@@ -14,6 +14,7 @@ parser.add_argument("-t", "--thread", help="index of thread", default=-1, type=i
 parser.add_argument("-d", "--dataset", type=str, default="default")
 parser.add_argument("-a", "--algo", type=str, default="naive_nbr")
 parser.add_argument("-v", "--verbose", action='store_true')
+parser.add_argument("-s", "--param_s", help="parameter for improve2_nbr", default=1, type=int)
 parser.add_argument("--iterations", help="number of iterations", default=1, type=int)
 
 
@@ -83,13 +84,15 @@ for iteration in range(args.iterations):
         hgDecompose.naiveDeg(H, verbose=args.verbose)
 
     elif(args.algo == "improved2_nbr"):
-        hgDecompose.improved2NBR(H, verbose=args.verbose)
+        assert args.param_s > 0 # Is this assertion valid?
+        hgDecompose.improved2NBR(H, s=args.param_s, verbose=args.verbose)
 
     else:
         raise RuntimeError(args.algo + " is not defined or implemented yet")
 
 
     entry['core'] = hgDecompose.core
+    entry['param_s'] = args.param_s
     entry['execution time'] = hgDecompose.execution_time
     entry['bucket update time'] = hgDecompose.bucket_update_time
     entry['neighborhood call time'] = hgDecompose.neighborhood_call_time
@@ -102,6 +105,7 @@ for iteration in range(args.iterations):
     result = result.append(entry, ignore_index=True)
 
     if(args.verbose and iteration==0): 
+        print(entry)
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")
