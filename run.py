@@ -14,6 +14,8 @@ parser.add_argument("-t", "--thread", help="index of thread", default=-1, type=i
 parser.add_argument("-d", "--dataset", type=str, default="default")
 parser.add_argument("-a", "--algo", type=str, default="naive_nbr")
 parser.add_argument("-v", "--verbose", action='store_true')
+parser.add_argument("--iterations", help="number of iterations", default=1, type=int)
+
 
 
 args = parser.parse_args()
@@ -67,41 +69,42 @@ else:
 assert H is not None
 
 
-entry = {}
-entry['algo'] = args.algo
-entry['dataset'] = args.dataset
+for iteration in range(args.iterations):
+    entry = {}
+    entry['algo'] = args.algo
+    entry['dataset'] = args.dataset
 
-# run algo
-hgDecompose = HGDecompose()
-if(args.algo == "naive_nbr"):
-    hgDecompose.naiveNBR(H, verbose=args.verbose)
-    
-elif(args.algo == "naive_degree"):
-    hgDecompose.naiveDeg(H, verbose=args.verbose)
+    # run algo
+    hgDecompose = HGDecompose()
+    if(args.algo == "naive_nbr"):
+        hgDecompose.naiveNBR(H, verbose=args.verbose)
+        
+    elif(args.algo == "naive_degree"):
+        hgDecompose.naiveDeg(H, verbose=args.verbose)
 
-elif(args.algo == "improved2_nbr"):
-    hgDecompose.improved2NBR(H, verbose=args.verbose)
+    elif(args.algo == "improved2_nbr"):
+        hgDecompose.improved2NBR(H, verbose=args.verbose)
 
-else:
-    raise RuntimeError(args.algo + " is not defined or implemented yet")
+    else:
+        raise RuntimeError(args.algo + " is not defined or implemented yet")
 
 
-entry['core'] = hgDecompose.core
-entry['execution time'] = hgDecompose.execution_time
-entry['bucket update time'] = hgDecompose.bucket_update_time
-entry['neighborhood call time'] = hgDecompose.neighborhood_call_time
-entry['degree call time'] = hgDecompose.degree_call_time
-entry['num bucket update'] = hgDecompose.num_bucket_update
-entry['num neighborhood computation'] = hgDecompose.num_neighborhood_computation
-entry['num degree computation'] = hgDecompose.num_degree_computation
+    entry['core'] = hgDecompose.core
+    entry['execution time'] = hgDecompose.execution_time
+    entry['bucket update time'] = hgDecompose.bucket_update_time
+    entry['neighborhood call time'] = hgDecompose.neighborhood_call_time
+    entry['degree call time'] = hgDecompose.degree_call_time
+    entry['num bucket update'] = hgDecompose.num_bucket_update
+    entry['num neighborhood computation'] = hgDecompose.num_neighborhood_computation
+    entry['num degree computation'] = hgDecompose.num_degree_computation
 
-result = pd.DataFrame()
-result = result.append(entry, ignore_index=True)
+    result = pd.DataFrame()
+    result = result.append(entry, ignore_index=True)
 
-if(args.verbose): 
-    print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+    if(args.verbose and iteration==0): 
+        print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
-os.system("mkdir -p data/output")
-result.to_csv('data/output/result.csv', header=False,
-                        index=False, mode='a')
-    
+    os.system("mkdir -p data/output")
+    result.to_csv('data/output/result.csv', header=False,
+                            index=False, mode='a')
+        

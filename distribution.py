@@ -12,22 +12,23 @@ dataset_list = ['default', 'syn']
 iterations = 10
 
 
+
 # all combination of experiments
 configurations = []
-for iteration in range(iterations):
-    for algo in algo_list:
-        for dataset in dataset_list:
-            configurations.append((iteration, algo, dataset))
+for algo in algo_list:
+    for dataset in dataset_list:
+        configurations.append((algo, dataset))
 
 
 
 # print(len(configurations))
 # distributing among threads
 for i, configuration in enumerate(configurations):
-    _, algo, dataset = configuration
+    algo, dataset = configuration
     if(i%args.max_thread == args.thread or args.thread == -1):
         cmd = "python -W ignore run.py" + \
               " --algo " + algo + \
-              " --dataset " + dataset
+              " --dataset " + dataset + \
+              " --iterations " + str(iterations)
         print(cmd) 
         os.system(cmd) 

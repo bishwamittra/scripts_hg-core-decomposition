@@ -9,7 +9,7 @@ mythread=$((OMPI_COMM_WORLD_RANK))
 # echo $mythread
 
 # tlimit="2000"
-memlimit="4000000"
+memlimit="16000000"
 ulimit -v $memlimit
 
 
