@@ -109,6 +109,7 @@ def get_hg(dataset):
             "bin_2" : "data/datasets/synthetic/binomial_5_500_4_0.200000_sample_2_iter_1.txt",
             "bin_4" : "data/datasets/synthetic/binomial_5_100_3_0.200000_sample_4_iter_1.txt",
             "bin_5" : "data/datasets/synthetic/binomial_5_500_3_0.200000_sample_5_iter_1.txt",
+
         }
 
         

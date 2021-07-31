@@ -374,7 +374,10 @@ class HGDecompose():
                     if u not in lub:
                         max_value = max(inv_bucket[u] - 1, k)
                         copy_bucket[inv_bucket[u]].remove(u)
-                        copy_bucket[max_value].append(u)
+                        if(max_value not in copy_bucket):
+                            copy_bucket[max_value] = [u]
+                        else:
+                            copy_bucket[max_value].append(u)
                         inv_bucket[u] = max_value
 
         if(verbose):
