@@ -37,9 +37,13 @@ for iteration in range(args.iterations):
     hgDecompose = HGDecompose()
     if(args.algo == "naive_nbr"):
         hgDecompose.naiveNBR(H, verbose=args.verbose)
+
+    elif(args.algo == "improved_nbr"):
+        hgDecompose.improvedNBR(H, verbose=args.verbose)
         
     elif(args.algo == "naive_degree"):
         hgDecompose.naiveDeg(H, verbose=args.verbose)
+
 
     elif(args.algo == "improved2_nbr"):
         assert args.param_s > 0 # Is this assertion valid?

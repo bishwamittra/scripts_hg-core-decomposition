@@ -228,6 +228,95 @@ class HGDecompose():
                         yield sorted_ub_set[-1] + 1, sorted_ub_set[i]
                     i += s
 
+    def improvedNBR(self, H, verbose = True):
+        start_execution_time = time()
+        nodes = list(H.nodes)
+        num_nodes = len(nodes)
+        
+
+        
+        lb1 = math.inf
+        lb2 = {}
+        ub1 = -math.inf
+        # flag = {}
+        # Initial bucket fill-up
+        for node in nodes:
+            nbrs = H.neighbors(node)
+            # neighbors = list(H.neighbors(node))
+            len_neighbors = len(nbrs) # this computation can be repeated
+            lb1 = min(lb1,len_neighbors)
+            ub1 = max(ub1,len_neighbors)
+            # LB2 computation
+            for u in nbrs:
+                lb2[node] = min(lb2.get(node,len_neighbors),len(H.neighbors(u))-1)
+            # node_to_neighbors[node] = neighbors
+            self._node_to_num_neighbors[node] = len_neighbors
+            # print(node, neighbors)
+            if len_neighbors not in self.bucket:
+                self.bucket[len_neighbors] = [node]
+            else:
+                self.bucket[len_neighbors].append(node)
+            # flag[node] = False
+
+        if(verbose):
+            print("\n---------- Initial neighbors -------")
+            for node in H.nodes:
+                print(node, H.neighbors(node))
+            print()
+
+
+            print("\n---------- Initial bucket -------")
+            print(self.bucket)
+            print()
+
+        for k in range(lb1, ub1):
+            while len(self.bucket.get(k,[])) != 0:
+                v = self.bucket[k].pop(0) # get first element in the
+                if(verbose):
+                    print("k:", k, "node:", v)
+                self.core[v] = k
+
+                temp_nodes = nodes[:] # Make a copy of nodes
+                temp_nodes.remove(v)  # V' <- V \ {v}
+                H_temp = utils.strong_subgraph(H, temp_nodes)
+                for u in utils.get_nbrs(H, v):
+
+                    if lb2[u] <= k:
+                        start_neighborhood_call = time()
+                        len_neighbors_u = utils.get_number_of_nbrs(H_temp, u)
+                        self.neighborhood_call_time  += time() - start_neighborhood_call
+                        self.num_neighborhood_computation += 1
+                    
+
+                        
+                        max_value = max(len_neighbors_u, k)
+                        if(verbose):
+                            print("max core between", k, 'and', len_neighbors_u, "is ", max_value)
+                            print("The location of", u, "is updated from", self._node_to_num_neighbors[u], "to", max_value)
+                        
+                        start_bucket_update = time()
+                        self.bucket[self._node_to_num_neighbors[u]].remove(u)
+                        self.bucket[max_value].append(u)
+                        self.bucket_update_time += time() - start_bucket_update
+                    
+
+                        # update new location of u
+                        self._node_to_num_neighbors[u] = max_value
+
+                    if(verbose):
+                        print("-------- Updated bucket ---------")
+                        print(self.bucket)
+                        print()
+                nodes = temp_nodes
+                H = H_temp
+
+        self.execution_time = time() - start_execution_time
+
+        if(verbose):
+            print("\n\nOutput")
+            print(self.core)
+
+
     def improved2NBR(self, H, s = 1, verbose = True):
         """ 
         :param H -> Hypergraph

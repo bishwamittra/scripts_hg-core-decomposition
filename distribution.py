@@ -7,16 +7,16 @@ parser.add_argument("--max_thread", help="maximum number of thread", default=1, 
 args = parser.parse_args()
 
 # ['enron', 'congress', 'contact', 'syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5']
-algo_list = ['naive_nbr', 'naive_degree', 'improved2_nbr']
+algo_list = ['naive_nbr', 'naive_degree', 'improved2_nbr', 'improved_nbr']
 dataset_list = ['enron', 'congress', 'contact', 'syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5']
 param_s = [i+1 for i in range(10)]
 iterations = 10
 
 # small exp
-iterations = 1
-algo_list = algo_list[:1]
+# iterations = 1
+# dataset_list = ['default', 'syn']
 
-assert iterations > 1
+# assert iterations > 1
 
 # all combination of experiments
 configurations = []

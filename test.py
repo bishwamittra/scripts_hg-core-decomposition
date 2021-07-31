@@ -17,5 +17,6 @@ scenes = {
 H = hnx.Hypergraph(scenes)
 hgDecompose = HGDecompose()
 # hgDecompose.naiveDeg(H, verbose=False)
-hgDecompose.improved2NBR(H, verbose=True)
+hgDecompose.improvedNBR(H, verbose=True)
+# hgDecompose.improved2NBR(H, verbose=True)
 print(hgDecompose.core)
