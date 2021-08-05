@@ -296,7 +296,10 @@ class HGDecompose():
                         
                         start_bucket_update = time()
                         self.bucket[self._node_to_num_neighbors[u]].remove(u)
-                        self.bucket[max_value].append(u)
+                        if(max_value not in self.bucket):
+                            self.bucket[max_value] = [u]
+                        else:
+                            self.bucket[max_value].append(u)
                         self.bucket_update_time += time() - start_bucket_update
                     
 
