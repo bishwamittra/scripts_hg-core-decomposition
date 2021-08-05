@@ -10,7 +10,9 @@ args = parser.parse_args()
 os.system("./clean.sh")
 
 # if(args.mpi):
-path="nscc:/home/projects/11000744/bishwa/hg_decompose/" 
+# path="nscc:/home/projects/11000744/bishwa/hg_decompose/" 
+path = "NNdhUiT@biggraph.scse.ntu.edu.sg:/data1/Naheed/hgDecompose/"
+
 if(args.all):
     os.system("tar -czvf file_to_send.tar.gz hgDecompose/* data/* HyperNetX/* *.py *sh *md")
 else:
