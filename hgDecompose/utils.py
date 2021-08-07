@@ -2,6 +2,8 @@ import sys
 
 sys.path.append("HyperNetX")
 import hypernetx as hnx
+import pandas as pd
+
 
 
 def strong_subgraph(H, vertex_set):
@@ -144,4 +146,109 @@ def get_hg(dataset):
 
 
     return H
+
+def get_N(H):
+    """ Return num of vertices """
+    return len(H.nodes)
+
+def get_M(H):
+    """ Return num of edges """
+    return len(H.edges)
+
+def get_degree_sequence(H):
+    """ Return the degree sequence in descending order """
+    assert isinstance(H, hnx.Hypergraph)
+    degs = []
+    for v in H.nodes:
+        degs.append(H.degree(v))
+    return sorted(degs,reverse = True)
+
+def get_degree_distr(H):
+    """ Return the degree distribution """
+    assert isinstance(H, hnx.Hypergraph)
+    degs = {}
+    N = get_N(H)
+    for v in H.nodes:
+        d = H.degree(v)
+        degs[d] = degs.get(d,0)+ (1.0/N)
+    return sorted(degs.items(),reverse = True)
+
+def get_dim_sequence(H):
+    """ Return the dimension sequence in descending order """
+    assert isinstance(H, hnx.Hypergraph)
+    dims = []
+    for e in H.edges:
+        dims.append(H.dim(e)+1)
+    return sorted(dims,reverse = True)
+
+def get_dim_distr(H):
+    """ Return the dimension distribution """
+    assert isinstance(H, hnx.Hypergraph)
+    dims = {}
+    M = get_M(H)
+    for _dim in get_dim_sequence(H):
+        dims[_dim] = dims.get(_dim,0)+ (1.0/M)
+    return sorted(dims.items(),reverse = True)
+
+def get_nbr_sequence(H):
+    """ Return the sequence nbrhood sizes  in descending order """
+    assert isinstance(H, hnx.Hypergraph)
+    nbrs = []
+    for v in H.nodes:
+        nbrs.append(get_number_of_nbrs(H,v))
+    return sorted(nbrs,reverse = True)
+
+def get_nbr_distr(H):
+    """ Return the distribution of nbr sizes  """
+    assert isinstance(H, hnx.Hypergraph)
+    nbrs = {}
+    N = get_N(H)
+    for nbr in get_nbr_sequence(H):
+        nbrs[nbr] = nbrs.get(nbr,0) + (1.0/N)
+    return sorted(nbrs,reverse = True)
+
+def get_degree_stats(H):
+    """ Return the stats of degrees. """
+    assert isinstance(H, hnx.Hypergraph)
+    deg_seq = get_degree_sequence(H)
+    stat = {'mean': None, 'max': None, 'min': None, '25%': None, '50%': None, '75%': None, 'std': None}
+    _temp = pd.Series(deg_seq).describe()
+    stat['mean'] = _temp['mean']
+    stat['std'] = _temp['std']
+    stat['min'] = _temp['min']
+    stat['max'] = _temp['max']
+    stat['25%'] = _temp['25%']
+    stat['50%'] = _temp['50%']
+    stat['75%'] = _temp['75%']
+    return stat
+
+def get_dim_stats(H):
+    """ Return the stats of dimensions. """
+    assert isinstance(H, hnx.Hypergraph)
+    dim_seq = get_dim_sequence(H)
+    stat = {'mean': None, 'max': None, 'min': None, '25%': None, '50%': None, '75%': None, 'std': None}
+    _temp = pd.Series(dim_seq).describe()
+    stat['mean'] = _temp['mean']
+    stat['std'] = _temp['std']
+    stat['min'] = _temp['min']
+    stat['max'] = _temp['max']
+    stat['25%'] = _temp['25%']
+    stat['50%'] = _temp['50%']
+    stat['75%'] = _temp['75%']
+    return stat
+
+def get_nbr_stats(H):
+    """ Return the stats of neighbourhoods. """
+    assert isinstance(H, hnx.Hypergraph)
+    nbr_seq = get_nbr_sequence(H)
+    stat = {'mean': None, 'max': None, 'min': None, '25%': None, '50%': None, '75%': None, 'std': None}
+    _temp = pd.Series(nbr_seq).describe()
+    stat['mean'] = _temp['mean']
+    stat['std'] = _temp['std']
+    stat['min'] = _temp['min']
+    stat['max'] = _temp['max']
+    stat['25%'] = _temp['25%']
+    stat['50%'] = _temp['50%']
+    stat['75%'] = _temp['75%']
+    return stat
 

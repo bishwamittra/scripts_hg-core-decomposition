@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 # hyper-graph construction
 H = get_hg(args.dataset)
-
+print("HG construction done!")
 assert H is not None
 
 
@@ -62,6 +62,8 @@ for iteration in range(args.iterations):
     entry['num bucket update'] = hgDecompose.num_bucket_update
     entry['num neighborhood computation'] = hgDecompose.num_neighborhood_computation
     entry['num degree computation'] = hgDecompose.num_degree_computation
+    entry['subgraph computation time'] = hgDecompose.subgraph_time
+    entry['num subgraph call'] = hgDecompose.num_subgraph_call
 
     result = pd.DataFrame()
     result = result.append(entry, ignore_index=True)

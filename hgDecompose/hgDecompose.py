@@ -18,6 +18,8 @@ class HGDecompose():
         self.num_neighborhood_computation = 0
         self.num_degree_computation = 0
         self.num_bucket_update = 0
+        self.subgraph_time = 0
+        self.num_subgraph_call = 0
 
 
     def preprocess(self):
@@ -66,7 +68,10 @@ class HGDecompose():
                 temp_nodes = nodes[:] 
                 temp_nodes.remove(v) 
 
+                start_subgraph_time = time()
                 H_temp = utils.strong_subgraph(H, temp_nodes) # Store.... + executation time.. 
+                self.subgraph_time += time() - start_subgraph_time
+                self.num_subgraph_call += 1
 
                 # enumerating over all neighbors of v
                 for u in utils.get_nbrs(H, v):  
@@ -96,7 +101,7 @@ class HGDecompose():
                         self.bucket[max_value] = [u]
                     else:
                         self.bucket[max_value].append(u)
-                        self.num_bucket_update += 1
+                    self.num_bucket_update += 1
                     self.bucket_update_time += time() - start_bucket_update
                         
                     # How many times is bucket updated + executation time??? Store...
@@ -160,7 +165,12 @@ class HGDecompose():
                 temp_nodes = nodes[:] 
                 temp_nodes.remove(v) 
 
+                start_subgraph_time = time()
                 H_temp = utils.strong_subgraph(H, temp_nodes) # Store.... + executation time.. 
+                self.subgraph_time += time() - start_subgraph_time
+                self.num_subgraph_call += 1
+
+
 
                 # enumerating over all neighbors of v
                 for u in utils.get_nbrs(H, v):  
@@ -190,7 +200,7 @@ class HGDecompose():
                         self.bucket[max_value] = [u]
                     else:
                         self.bucket[max_value].append(u)
-                        self.num_bucket_update += 1
+                    self.num_bucket_update += 1
                     self.bucket_update_time += time() - start_bucket_update
                         
                     # How many times is bucket updated + executation time??? Store...
@@ -278,7 +288,13 @@ class HGDecompose():
 
                 temp_nodes = nodes[:] # Make a copy of nodes
                 temp_nodes.remove(v)  # V' <- V \ {v}
-                H_temp = utils.strong_subgraph(H, temp_nodes)
+                
+                start_subgraph_time = time()
+                H_temp = utils.strong_subgraph(H, temp_nodes) # Store.... + executation time.. 
+                self.subgraph_time += time() - start_subgraph_time
+                self.num_subgraph_call += 1
+                
+                
                 for u in utils.get_nbrs(H, v):
 
                     if lb2[u] <= k:
@@ -300,6 +316,7 @@ class HGDecompose():
                             self.bucket[max_value] = [u]
                         else:
                             self.bucket[max_value].append(u)
+                        self.num_bucket_update += 1    
                         self.bucket_update_time += time() - start_bucket_update
                     
 
@@ -407,7 +424,13 @@ class HGDecompose():
                 final_bucket[max_val] = final_bucket.get(max_val, [])+[u]
                 inv_bucket[u] = max_val
                 setlb[u] = True
+
+
+            start_subgraph_time = time()
             H_kmin = utils.strong_subgraph(H, V_kmin)
+            self.subgraph_time += time() - start_subgraph_time
+            self.num_subgraph_call += 1
+
 
             for k in range(lower-1, upper+1):
                 while len(final_bucket.get(k, [])) != 0:
@@ -428,7 +451,13 @@ class HGDecompose():
                             setlb[v] = True
                         _temp_nodes = V_kmin[:]  # Make a copy of nodes
                         _temp_nodes.remove(v)  # V' <- V \ {v}
+                        
+                        start_subgraph_time = time()
                         _temp_Hkmin = utils.strong_subgraph(H_kmin, _temp_nodes)
+                        self.subgraph_time += time() - start_subgraph_time
+                        self.num_subgraph_call += 1
+                        
+
                         for u in utils.get_nbrs(H_kmin, v):
                             start_neighborhood_call = time()
                             len_neighbors_u = utils.get_number_of_nbrs(_temp_Hkmin, u)

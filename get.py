@@ -8,7 +8,9 @@ args = parser.parse_args()
 
 
 # if(args.mpi):
-path="nscc:/home/projects/11000744/bishwa/hg_decompose/data/output/" 
+# path="nscc:/home/projects/11000744/bishwa/hg_decompose/data/output/" 
+path = "NNdhUiT@biggraph.scse.ntu.edu.sg:/data1/Naheed/hgDecompose/data/output/"
+
 os.system("rm -r backup_output | mkdir -p backup_output")
 if(os.path.isdir("backup_output.mpi")):
     os.system("rm backup_output/mpi/")
