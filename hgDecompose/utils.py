@@ -95,7 +95,7 @@ def get_hg_hnx(dataset):
 
         H = hnx.Hypergraph(dic)
 
-    elif(dataset in ['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "congress", "contact"]):
+    elif(dataset in ['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "congress", "contact", "dblp","amazon"]):
 
         # file location
         dataset_to_filename = {
@@ -103,7 +103,8 @@ def get_hg_hnx(dataset):
             "enron" : "data/datasets/real/Enron.hyp",
             "congress" : "data/datasets/real/congress-bills.hyp",
             "contact" : "data/datasets/real/contact-primary-school.hyp",
-            
+            "dblp": "data/datasets/real/DBLP.hyp",
+            "amazon": "data/datasets/real/amazon-reviews.hyp",
             # synthetic
             "syn" : "data/datasets/synthetic/syn.hyp",
             "bin_1" : "data/datasets/synthetic/binomial_5_100_4_0.200000_sample_1_iter_1.txt",
@@ -119,7 +120,8 @@ def get_hg_hnx(dataset):
             "enron" : ",",
             "congress" : ",",
             "contact" : ",",
-     
+            "dblp": ",",
+            "amazon": ",",
             "syn" : ",",
             "bin_1" : ",",
             "bin_2" : ",",
@@ -162,7 +164,7 @@ def get_hg(dataset):
 
         H = Hypergraph(dic)
 
-    elif(dataset in ['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "congress", "contact"]):
+    elif(dataset in ['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "congress", "contact","dblp","amazon"]):
 
         # file location
         dataset_to_filename = {
@@ -170,7 +172,9 @@ def get_hg(dataset):
             "enron" : "data/datasets/real/Enron.hyp",
             "congress" : "data/datasets/real/congress-bills.hyp",
             "contact" : "data/datasets/real/contact-primary-school.hyp",
-            
+            "dblp": "data/datasets/real/DBLP.hyp",
+            "amazon": "data/datasets/real/amazon-reviews.hyp",
+
             # synthetic
             "syn" : "data/datasets/synthetic/syn.hyp",
             "bin_1" : "data/datasets/synthetic/binomial_5_100_4_0.200000_sample_1_iter_1.txt",
@@ -186,7 +190,8 @@ def get_hg(dataset):
             "enron" : ",",
             "congress" : ",",
             "contact" : ",",
-     
+            "dblp": ",",
+            "amazon": ",",
             "syn" : ",",
             "bin_1" : ",",
             "bin_2" : ",",

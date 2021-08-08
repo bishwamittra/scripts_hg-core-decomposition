@@ -3,10 +3,10 @@ sys.path.append("HyperNetX")
 import matplotlib.pyplot as plt
 import networkx as nx
 import hypernetx as hnx
-from hgDecompose.hgDecompose import HGDecompose
-from hgDecompose.utils import get_hg_hnx
-# from hgDecompose.newhgDecompose import HGDecompose
-# from hgDecompose.utils import get_hg
+# from hgDecompose.hgDecompose import HGDecompose
+# from hgDecompose.utils import get_hg_hnx
+from hgDecompose.newhgDecompose import HGDecompose
+from hgDecompose.utils import get_hg
 import argparse
 import pandas as pd
 import os
@@ -25,8 +25,8 @@ parser.add_argument("--iterations", help="number of iterations", default=1, type
 args = parser.parse_args()
 
 # hyper-graph construction
-H = get_hg_hnx(args.dataset)
-# H = get_hg(args.dataset)
+# H = get_hg_hnx(args.dataset)
+H = get_hg(args.dataset)
 print("HG construction done!")
 assert H is not None
 

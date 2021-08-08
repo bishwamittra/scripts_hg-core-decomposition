@@ -18,3 +18,5 @@ python -u distribution.py --thread $mythread --max_thread $numthreads > data/out
 
 # single thread
 # python -u distribution.py > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
+
+# kill $(ps aux | grep 'NNdhUiT' | grep 'python' | awk '{print $2}')
