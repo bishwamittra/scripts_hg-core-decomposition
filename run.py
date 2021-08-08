@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import hypernetx as hnx
 from hgDecompose.hgDecompose import HGDecompose
-from hgDecompose.utils import get_hg
+from hgDecompose.utils import get_hg_hnx
+# from hgDecompose.newhgDecompose import HGDecompose
+# from hgDecompose.utils import get_hg
 import argparse
 import pandas as pd
 import os
@@ -23,7 +25,8 @@ parser.add_argument("--iterations", help="number of iterations", default=1, type
 args = parser.parse_args()
 
 # hyper-graph construction
-H = get_hg(args.dataset)
+H = get_hg_hnx(args.dataset)
+# H = get_hg(args.dataset)
 print("HG construction done!")
 assert H is not None
 
@@ -64,10 +67,11 @@ for iteration in range(args.iterations):
     entry['num degree computation'] = hgDecompose.num_degree_computation
     entry['subgraph computation time'] = hgDecompose.subgraph_time
     entry['num subgraph call'] = hgDecompose.num_subgraph_call
-
+    # print(entry)
     result = pd.DataFrame()
     result = result.append(entry, ignore_index=True)
-
+    # print('result: ',result['num subgraph call'].values[0],',',result['subgraph computation time'].values[0])
+    # print('tolist(): ',result.columns.tolist())
     if(args.verbose and iteration==0): 
         print(entry)
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
@@ -75,4 +79,3 @@ for iteration in range(args.iterations):
     os.system("mkdir -p data/output")
     result.to_csv('data/output/result.csv', header=False,
                             index=False, mode='a')
-        
