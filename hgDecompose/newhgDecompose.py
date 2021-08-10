@@ -224,6 +224,8 @@ class HGDecompose():
         sorted_ub_set = sorted(ub_set, reverse=True)
         if(verbose):
             print('set of distinct values: ',sorted_ub_set)
+            print("#distinct values: ", len(sorted_ub_set))
+            print('range: ',(sorted_ub_set[-1],sorted_ub_set[0]) )
         if s >= len(ub_set):
             yield sorted_ub_set[-1] + 1, sorted_ub_set[0]
         else:
@@ -380,8 +382,8 @@ class HGDecompose():
             print(self.bucket)
             print()
 
-            print("\n -------- local lower bound --------")
-            print(llb)
+            # print("\n -------- local lower bound --------")
+            # print(llb)
 
         # Compute Local upper bounds
         copy_bucket = deepcopy(self.bucket)
@@ -401,11 +403,11 @@ class HGDecompose():
                             copy_bucket[max_value].append(u)
                         inv_bucket[u] = max_value
 
-        if(verbose):
-            print('local upper bound: ')
-            print(sorted(lub.items()))
-            print('local lower bound: ')
-            print(sorted(llb.items()))
+        # if(verbose):
+        #     print('local upper bound: ')
+        #     print(sorted(lub.items()))
+        #     print('local lower bound: ')
+        #     print(sorted(llb.items()))
 
 
         gen = self.generate_intervals(llb, lub, s = s, verbose = verbose)
@@ -452,7 +454,8 @@ class HGDecompose():
                             setlb[v] = True
                         # _temp_nodes = V_kmin[:]  # Make a copy of nodes
                         # _temp_nodes.remove(v)  # V' <- V \ {v}
-                        
+                        # if v not in V_kmin:
+                        #     print(k)
                         V_kmin.remove(v)
 
                         start_subgraph_time = time()

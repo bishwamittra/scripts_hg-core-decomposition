@@ -9,6 +9,7 @@ __pycache__/*
 backup_output/*
 data/output/fig/*
 data/datasets/*
+run_*/*
 
 # C extensions
 *.so

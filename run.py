@@ -74,6 +74,7 @@ for iteration in range(args.iterations):
     # print('tolist(): ',result.columns.tolist())
     if(args.verbose and iteration==0): 
         print(entry)
+        print("\n")
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")

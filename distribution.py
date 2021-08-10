@@ -8,16 +8,22 @@ args = parser.parse_args()
 
 # ['enron', 'congress', 'contact', 'syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5']
 # algo_list = ['naive_nbr', 'improved_nbr', 'improved2_nbr', 'naive_degree']
-algo_list = ['naive_nbr', 'improved_nbr', 'naive_degree']
-dataset_list = ['syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact', 'dblp','amazon']
-param_s_dict = {
-                'syn':(1,7), 'bin_1':(27,56), 'bin_2':(186,265), 'bin_4':(21,44),
-                 'bin_5':(130,195), 'enron':(1,934), 'congress':(3,1360), 'contact':(20,134), 
-                 'dblp': (1,10), 'amazon': (1,10)
+# algo_list = ['naive_nbr', 'improved_nbr', 'naive_degree']
+algo_list = ['improved2_nbr']
+# dataset_list = ['syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact', 'dblp','amazon']
+dataset_list = ['syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact']
+# param_s_dict = {
+#                 'syn':(-1,3), 'bin_1':(25, 33), 'bin_2':(184, 193), 'bin_4':(19,24),
+#                  'bin_5':(128, 140), 'enron': (-1, 40), 'congress': (1, 368), 'contact': (18, 47), 
+#                  'dblp': (-1, 279), 'amazon': None
+#                  }
+param_s_distinctvals = {'syn': 3, 'bin_1': 6, 'bin_2': 8, 'bin_4': 4,
+                 'bin_5':9, 'enron': 41, 'congress': 196, 'contact': 27, 
+                 'dblp': 86, 'amazon': None
                  }
 # param_s = [i+1 for i in range(10)]
 iterations = 10
-num_divisions = 20
+num_divisions = 10
 
 # small exp
 # iterations = 1
@@ -30,9 +36,9 @@ configurations = []
 for dataset in dataset_list:
     for algo in algo_list:
         if(algo in ['improved2_nbr']): # Additional param    
-            delta = int((param_s_dict[dataset][1]  - param_s_dict[dataset][0])/num_divisions)
+            delta = param_s_distinctvals[dataset]//num_divisions
             
-            for s in range(param_s_dict[dataset][0],param_s_dict[dataset][1]+1, max(delta,1)):    
+            for s in range(1,param_s_distinctvals[dataset]+1, max(delta,1)):    
                 configurations.append((algo, dataset, s))
         else:
             configurations.append((algo, dataset, 0))
