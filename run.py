@@ -5,11 +5,13 @@ import networkx as nx
 import hypernetx as hnx
 # from hgDecompose.hgDecompose import HGDecompose
 # from hgDecompose.utils import get_hg_hnx
-from hgDecompose.newhgDecompose import HGDecompose
+# from hgDecompose.newhgDecompose import HGDecompose
+from hgDecompose.optimizedhgDecompose import HGDecompose
 from hgDecompose.utils import get_hg
 import argparse
 import pandas as pd
 import os
+from copy import deepcopy
 
 # arguments
 parser = argparse.ArgumentParser()
@@ -26,12 +28,13 @@ args = parser.parse_args()
 
 # hyper-graph construction
 # H = get_hg_hnx(args.dataset)
-H = get_hg(args.dataset)
+input_H = get_hg(args.dataset)
 print("HG construction done!")
-assert H is not None
+assert input_H is not None
 
 
 for iteration in range(args.iterations):
+    H = deepcopy(input_H)
     entry = {}
     entry['algo'] = args.algo
     entry['dataset'] = args.dataset
@@ -67,6 +70,10 @@ for iteration in range(args.iterations):
     entry['num degree computation'] = hgDecompose.num_degree_computation
     entry['subgraph computation time'] = hgDecompose.subgraph_time
     entry['num subgraph call'] = hgDecompose.num_subgraph_call
+    entry['init time'] = hgDecompose.init_time
+    entry['outerloop time'] = hgDecompose.loop_time
+    entry['total iteration'] = hgDecompose.total_iteration
+    entry['inner iteration'] = hgDecompose.inner_iteration
     # print(entry)
     result = pd.DataFrame()
     result = result.append(entry, ignore_index=True)
