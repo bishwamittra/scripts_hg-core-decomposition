@@ -384,6 +384,7 @@ class HGDecompose():
             # gub = max(gub, len_neighbors)
             # LB2 computation
             llb[node] = H.precomputedlb2[node]
+            lub[node] = H.precomputedub2[node]
             # for u in nbrs:
             #     llb[node] = min(llb.get(node, len_neighbors), len(H.neighbors(u)) - 1)
             # node_to_neighbors[node] = neighbors
@@ -414,21 +415,21 @@ class HGDecompose():
             # print(llb)
 
         # Compute Local upper bounds
-        copy_bucket = deepcopy(self.bucket)
-        inv_bucket = deepcopy(self._node_to_num_neighbors)
+        # copy_bucket = deepcopy(self.bucket)
+        # inv_bucket = deepcopy(self._node_to_num_neighbors)
 
-        for k in range(glb, gub):
-            while len(copy_bucket.get(k, [])) != 0:
-                v = copy_bucket[k].pop()
-                lub[v] = k
-                for u in H.neighbors(v):
-                    if u not in lub:
-                        max_value = max(inv_bucket[u] - 1, k)
-                        copy_bucket[inv_bucket[u]].remove(u)
-                        if(max_value not in copy_bucket):
-                            copy_bucket[max_value] = set()
-                        copy_bucket[max_value].add(u)
-                        inv_bucket[u] = max_value
+        # for k in range(glb, gub):
+        #     while len(copy_bucket.get(k, [])) != 0:
+        #         v = copy_bucket[k].pop()
+        #         lub[v] = k
+        #         for u in H.neighbors(v):
+        #             if u not in lub:
+        #                 max_value = max(inv_bucket[u] - 1, k)
+        #                 copy_bucket[inv_bucket[u]].remove(u)
+        #                 if(max_value not in copy_bucket):
+        #                     copy_bucket[max_value] = set()
+        #                 copy_bucket[max_value].add(u)
+        #                 inv_bucket[u] = max_value
         gen = self.generate_intervals(llb, lub, s = s, verbose = verbose)
         
         self.init_time = time() - start_init_time

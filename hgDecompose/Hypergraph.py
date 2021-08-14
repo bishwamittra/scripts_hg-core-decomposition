@@ -45,15 +45,39 @@ class Hypergraph:
         self.gub = -math.inf
         # Computing local lower bounds
         self.precomputedlb2 = {}
-        for v in self.inc_dict.keys():
-            self.glb = min(self.glb, self.init_nbrsize[v])
-            self.gub = max(self.gub, self.init_nbrsize[v])
-            for u in self.init_nbr[v]:
-                self.precomputedlb2[v] = min(self.precomputedlb2.get(v, self.init_nbrsize[v]), self.init_nbrsize[u] - 1)
-
         # Computing local upper bounds
         self.precomputedub2 = {}
-        
+        # Auxiliary variables to assist computation of lb2 and ub2
+        inv_bucket = {}
+        _bucket = {}
+        for v in self.inc_dict.keys():
+            len_neighbors_v = self.init_nbrsize[v]
+            self.glb = min(self.glb,len_neighbors_v)
+            self.gub = max(self.gub, len_neighbors_v)
+            for u in self.init_nbr[v]:
+                self.precomputedlb2[v] = min(self.precomputedlb2.get(v, len_neighbors_v), self.init_nbrsize[u] - 1)
+            
+            # node_to_neighbors[node] = neighbors
+            inv_bucket[v] = len_neighbors_v
+            # print(node, neighbors)
+            if len_neighbors_v not in _bucket:
+                _bucket[len_neighbors_v] = set()
+            _bucket[len_neighbors_v].add(v)
+
+        for k in range(self.glb, self.gub):
+            while len(_bucket.get(k, [])) != 0:
+                v = _bucket[k].pop()
+                self.precomputedub2[v] = k
+                for u in self.init_nbr[v]:
+                    if u not in self.precomputedub2:
+                        max_value = max(inv_bucket[u] - 1, k)
+                        _bucket[inv_bucket[u]].remove(u)
+                        if(max_value not in _bucket):
+                            _bucket[max_value] = set()
+                        _bucket[max_value].add(u)
+                        inv_bucket[u] = max_value
+        del _bucket
+        del inv_bucket
 
     def get_init_nbr(self, v):
         return self.init_nbr[v]
