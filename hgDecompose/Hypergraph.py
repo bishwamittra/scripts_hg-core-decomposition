@@ -2,7 +2,7 @@ import sys
 
 sys.path.append("HyperNetX")
 import hypernetx as hnx
-
+import math
 
 class Hypergraph:
     """ 
@@ -13,8 +13,7 @@ class Hypergraph:
     """
 
     def __init__(self, _edgedict=None):
-        if _edgedict is None:  # Returns an empty Hypergraph
-            return
+        
         self.e_indices = {}  # (position, position+edge_size) of edge e in e_nodes list
         self.e_nodes = []  # flattened edge list
         self.inc_dict = {}  # key: nodeid, value = ids of incident edges (set)
@@ -22,7 +21,8 @@ class Hypergraph:
         self.degree_dict = {}
         self.init_nbrsize = {} # initial nbrhood sizes. can be precomputed.
         self.init_nbr = {}
-        self.precomputedlb2 = {}
+        if _edgedict is None:  # Returns an empty Hypergraph
+            return
 
         self.i = 0
         for e_id, e in _edgedict.items():
@@ -40,9 +40,20 @@ class Hypergraph:
                 self.init_nbr[v] = nbr_v  # neighbourbood set update
             self.i += _len
 
+        # Computing global upper and lower bounds
+        self.glb = math.inf
+        self.gub = -math.inf
+        # Computing local lower bounds
+        self.precomputedlb2 = {}
         for v in self.inc_dict.keys():
+            self.glb = min(self.glb, self.init_nbrsize[v])
+            self.gub = max(self.gub, self.init_nbrsize[v])
             for u in self.init_nbr[v]:
                 self.precomputedlb2[v] = min(self.precomputedlb2.get(v, self.init_nbrsize[v]), self.init_nbrsize[u] - 1)
+
+        # Computing local upper bounds
+        self.precomputedub2 = {}
+        
 
     def get_init_nbr(self, v):
         return self.init_nbr[v]
@@ -314,6 +325,45 @@ class Hypergraph:
     #     H.e_indices = e_indices
     #     return H
 
+    def strong_subgraph(self, vertex_list):
+        """ returns: Hypergraph object. """
+        H = Hypergraph()
+        e_indices = {}  # (position, edge_size) of edge e in e_nodes list
+        e_nodes = []  # flattened edge list
+        inc_dict = {}
+        H.i = 0
+    
+        # print('inc_dict: ',self.inc_dict.items())
+        # print('e_indices: ',self.e_indices.items())
+        # print('e_nodes: ',self.e_nodes)
+    
+        for e_id in self.e_indices:
+            e = self.get_edge_byindex(e_id)
+            flag = True 
+            for u in e:
+                if u not in vertex_list:
+                    flag = False
+                    break
+            if flag:
+                e_nodes += e
+                _lene = len(e)
+                e_indices[e_id] = (H.i, H.i + _lene)
+                for v in e:
+                    if v not in inc_dict:
+                        inc_dict[v] = set()
+                    if e_id not in inc_dict[v]:
+                        inc_dict[v].add(e_id)
+                        H.degree_dict[v] = H.degree_dict.get(v,0) + 1
+                H.i += _lene
+            # else:
+            #     inc_dict[v] = inc_dict.get(v, []) + [e_id]
+    
+        # print('After: ','inc_dict = ',inc_dict.items(),'\n','e_indices = ',e_indices,'\n',' e_nodes = ',e_nodes)
+        H.e_nodes = e_nodes
+        H.inc_dict = inc_dict
+        H.e_indices = e_indices
+        return H
+
     def get_hnx_format(self):
         _tempH = {}
         for e_id in self.e_indices.keys():
@@ -323,3 +373,100 @@ class Hypergraph:
     # def weak_subgraph(self, vertex_list):
     #     """ returns: Hypergraph object. """
     #     pass
+
+    def get_N(self):
+        """ Return num of vertices """
+        return len(self.inc_dict)
+    
+    def get_M(self):
+        """ Return num of edges """
+        return len(self.e_indices)
+    
+    def get_degree_sequence(self):
+        """ Return the degree sequence in descending order """
+        degs = []
+        for v in self.degree_dict:
+            degs.append(self.degree_dict[v])
+        return sorted(degs,reverse = True)
+
+    def get_degree_distr(self):
+        """ Return the degree distribution """
+        degs = {}
+        N = self.get_N()
+        for d in self.degree_dict.values():
+            degs[d] = degs.get(d,0)+ (1.0/N)
+        return sorted(degs.items(),reverse = True)
+
+    def get_dim_sequence(self):
+        """ Return the dimension sequence in descending order """
+        dims = []
+        for e_start,e_end in self.e_indices.values():
+            dims.append(e_end - e_start)
+        return sorted(dims,reverse = True)
+
+    def get_dim_distr(self):
+        """ Return the dimension distribution """
+        assert isinstance(H, hnx.Hypergraph)
+        dims = {}
+        M = self.get_M()
+        for _dim in self.get_dim_sequence():
+            dims[_dim] = dims.get(_dim,0)+ (1.0/M)
+        return sorted(dims.items(),reverse = True)
+
+    def get_nbr_sequence(self):
+        """ Return the sequence nbrhood sizes  in descending order """
+        
+        return sorted(self.init_nbrsize.values(),reverse = True)
+
+    def get_nbr_distr(self):
+        """ Return the distribution of nbr sizes  """
+        nbrs = {}
+        N = self.get_N()
+        for nbr in self.init_nbrsize.values():
+            nbrs[nbr] = nbrs.get(nbr,0) + (1.0/N)
+        return sorted(nbrs,reverse = True)
+
+    def get_degree_stats(self):
+        """ Return the stats of degrees. """
+        import pandas as pd
+        deg_seq = self.get_degree_sequence()
+        stat = {'mean': None, 'max': None, 'min': None, '25%': None, '50%': None, '75%': None, 'std': None}
+        _temp = pd.Series(deg_seq).describe()
+        stat['mean'] = _temp['mean']
+        stat['std'] = _temp['std']
+        stat['min'] = _temp['min']
+        stat['max'] = _temp['max']
+        stat['25%'] = _temp['25%']
+        stat['50%'] = _temp['50%']
+        stat['75%'] = _temp['75%']
+        return stat
+
+    def get_dim_stats(self):
+        """ Return the stats of dimensions. """
+        import pandas as pd
+        dim_seq = self.get_dim_sequence()
+        stat = {'mean': None, 'max': None, 'min': None, '25%': None, '50%': None, '75%': None, 'std': None}
+        _temp = pd.Series(dim_seq).describe()
+        stat['mean'] = _temp['mean']
+        stat['std'] = _temp['std']
+        stat['min'] = _temp['min']
+        stat['max'] = _temp['max']
+        stat['25%'] = _temp['25%']
+        stat['50%'] = _temp['50%']
+        stat['75%'] = _temp['75%']
+        return stat
+
+    def get_nbr_stats(self):
+        """ Return the stats of neighbourhoods. """
+        import pandas as pd
+        nbr_seq = self.get_nbr_sequence()
+        stat = {'mean': None, 'max': None, 'min': None, '25%': None, '50%': None, '75%': None, 'std': None}
+        _temp = pd.Series(nbr_seq).describe()
+        stat['mean'] = _temp['mean']
+        stat['std'] = _temp['std']
+        stat['min'] = _temp['min']
+        stat['max'] = _temp['max']
+        stat['25%'] = _temp['25%']
+        stat['50%'] = _temp['50%']
+        stat['75%'] = _temp['75%']
+        return stat
