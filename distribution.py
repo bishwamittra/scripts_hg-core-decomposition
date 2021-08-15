@@ -47,7 +47,7 @@ for dataset in dataset_list:
                         configurations.append((algo,dataset,s, nthread))
                 configurations.append((algo, dataset, s, 4))
         else:
-            configurations.append((algo, dataset, 0))
+            configurations.append((algo, dataset, 0, 4))
 
 
 # print(len(configurations))
