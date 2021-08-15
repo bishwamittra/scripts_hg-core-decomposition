@@ -21,7 +21,7 @@ parser.add_argument("-a", "--algo", type=str, default="naive_nbr")
 parser.add_argument("-v", "--verbose", action='store_true')
 parser.add_argument("-s", "--param_s", help="parameter for improve2_nbr", default=1, type=int)
 parser.add_argument("--iterations", help="number of iterations", default=1, type=int)
-
+parser.add_argument("-nt", "--nthreads", help="number of threads for improve3_nbr", default=4, type=int)
 
 
 args = parser.parse_args()
@@ -38,7 +38,7 @@ for iteration in range(args.iterations):
     entry = {}
     entry['algo'] = args.algo
     entry['dataset'] = args.dataset
-
+    entry['num_threads'] = args.nthreads
     # run algo
     hgDecompose = HGDecompose()
     if(args.algo == "naive_nbr"):
@@ -57,11 +57,11 @@ for iteration in range(args.iterations):
 
     elif (args.algo == 'par_improved2_nbr'):
         assert args.param_s > 0 # Is this assertion valid?
-        hgDecompose.parallel_improved2NBR(H, s=args.param_s, verbose=args.verbose)
+        hgDecompose.parallel_improved2NBR(H, s=args.param_s, num_threads = args.nthreads, verbose=args.verbose)
     
     elif (args.algo == 'par_improved3_nbr'):
         assert args.param_s > 0 # Is this assertion valid?
-        hgDecompose.parallel_improved3NBR(H, s=args.param_s, verbose=args.verbose)
+        hgDecompose.parallel_improved3NBR(H, s=args.param_s, num_threads = args.nthreads, verbose=args.verbose)
     
     else:
         raise RuntimeError(args.algo + " is not defined or implemented yet")

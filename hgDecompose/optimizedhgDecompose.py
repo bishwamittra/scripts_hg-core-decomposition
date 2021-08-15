@@ -648,7 +648,7 @@ class HGDecompose():
                 _local_subgraph_time, \
                 _local_num_subgraph_call
 
-    def parallel_improved2NBR(self, H, s = 1, verbose = True):
+    def parallel_improved2NBR(self, H, s = 1, num_threads = 4, verbose = True):
         """
         :param H -> Hypergraph
         :param s -> Integer, algorithm parameter.
@@ -709,11 +709,11 @@ class HGDecompose():
         
         # Parallel run
         self._working_H = H
-        arguments = [(lower, upper, verbose) for lower, upper in gen]
+        # arguments = 
         # num_threads = len(arguments)
-        num_threads = 4
+        # num_threads = 4
         with Pool(num_threads) as p:
-            return_values = p.map(self.parallel_compute_core, arguments)
+            return_values = p.map(self.parallel_compute_core, [(lower, upper, verbose) for lower, upper in gen])
 
         # Retrieving return values
         for val in return_values:
@@ -744,7 +744,7 @@ class HGDecompose():
             print("\n\nOutput")
             print(self.core)
 
-    def parallel_improved3NBR(self, H, s = 1, verbose = True):
+    def parallel_improved3NBR(self, H, s = 1, num_threads = 4, verbose = True):
         """
         :param H -> Hypergraph
         :param s -> Integer, algorithm parameter.
@@ -806,9 +806,9 @@ class HGDecompose():
         
         # Parallel run
         self._working_H = H
-        arguments = [(lower, upper, verbose) for lower, upper in gen]
-        with Pool(len(arguments)) as p:
-            return_values = p.map(self.parallel3_compute_core, arguments)
+        # arguments = [(lower, upper, verbose) for lower, upper in gen]
+        with Pool(num_threads) as p:
+            return_values = p.map(self.parallel3_compute_core, [(lower, upper, verbose) for lower, upper in gen])
 
         # Retrieving return values
         for val in return_values:

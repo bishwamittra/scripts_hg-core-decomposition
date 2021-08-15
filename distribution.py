@@ -10,10 +10,11 @@ args = parser.parse_args()
 # algo_list = ['naive_nbr', 'improved_nbr', 'improved2_nbr', 'naive_degree']
 # algo_list = ['naive_nbr', 'improved_nbr', 'naive_degree']
 # algo_list = ['naive_nbr', 'improved_nbr','improved2_nbr','par_improved2_nbr']
-algo_list = ['par_improved2_nbr','par_improved3_nbr']
+algo_list = ['par_improved2_nbr','par_improved3_nbr','naive_nbr', 'improved_nbr','improved2_nbr']
 # dataset_list = ['dblp','amazon']
 # dataset_list = ['syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact', 'dblp','amazon']
 dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact','dblp']
+n_thread_list = [2,4,8,16,32]
 # param_s_dict = {
 #                 'syn':(-1,3), 'bin_1':(25, 33), 'bin_2':(184, 193), 'bin_4':(19,24),
 #                  'bin_5':(128, 140), 'enron': (-1, 40), 'congress': (1, 368), 'contact': (18, 47), 
@@ -40,23 +41,26 @@ for dataset in dataset_list:
         if(algo in ['improved2_nbr','par_improved2_nbr','par_improved3_nbr']): # Additional param    
             delta = param_s_distinctvals[dataset]//num_divisions
             
-            for s in range(1,param_s_distinctvals[dataset]+1, max(delta,1)):    
-                configurations.append((algo, dataset, s))
+            for s in range(1,param_s_distinctvals[dataset]+1, max(delta,1)):   
+                if algo in ['par_improved2_nbr','par_improved3_nbr']:
+                    for nthread in n_thread_list:
+                        configurations.append((algo,dataset,s, nthread))
+                configurations.append((algo, dataset, s, 4))
         else:
             configurations.append((algo, dataset, 0))
-
 
 
 # print(len(configurations))
 # distributing among threads
 for i, configuration in enumerate(configurations):
-    algo, dataset, s = configuration
+    algo, dataset, s, nthreads = configuration
     if(i%args.max_thread == args.thread or args.thread == -1):
         cmd = "python -W ignore -u run.py" + \
               " --algo " + algo + \
               " --dataset " + dataset + \
               " --iterations " + str(iterations) + \
-              " --param_s " + str(s)
+              " --param_s " + str(s) +\
+              " --nthreads " + str(nthreads)
         print(cmd) 
         os.system(cmd) 
 
