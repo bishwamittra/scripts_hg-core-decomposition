@@ -9,8 +9,8 @@ args = parser.parse_args()
 # ['enron', 'congress', 'contact', 'syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5']
 # algo_list = ['naive_nbr', 'improved_nbr', 'improved2_nbr', 'naive_degree']
 # algo_list = ['naive_nbr', 'improved_nbr', 'naive_degree']
-algo_list = ['naive_nbr', 'improved_nbr','improved2_nbr','par_improved2_nbr']
-# algo_list = ['improved2_nbr']
+# algo_list = ['naive_nbr', 'improved_nbr','improved2_nbr','par_improved2_nbr']
+algo_list = ['par_improved2_nbr']
 # dataset_list = ['dblp','amazon']
 # dataset_list = ['syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact', 'dblp','amazon']
 dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact','dblp']
@@ -37,7 +37,7 @@ num_divisions = 10
 configurations = []
 for dataset in dataset_list:
     for algo in algo_list:
-        if(algo in ['improved2_nbr']): # Additional param    
+        if(algo in ['improved2_nbr','par_improved2_nbr']): # Additional param    
             delta = param_s_distinctvals[dataset]//num_divisions
             
             for s in range(1,param_s_distinctvals[dataset]+1, max(delta,1)):    
@@ -58,6 +58,6 @@ for i, configuration in enumerate(configurations):
               " --iterations " + str(iterations) + \
               " --param_s " + str(s)
         print(cmd) 
-        os.system(cmd) 
+        # os.system(cmd) 
 
 # TO DO: ignore assertion -O
