@@ -1,11 +1,11 @@
-import sys
-
-sys.path.append("HyperNetX")
-import hypernetx as hnx
 import pandas as pd
 from hgDecompose.Hypergraph import Hypergraph
 
 def strong_subgraph(H, vertex_set):
+    import sys
+
+    sys.path.append("HyperNetX")
+    import hypernetx as hnx
     """
     Returns the strong sub-hypergraph of H induced by vertex_set
     Parameters
@@ -61,6 +61,10 @@ def get_degree(H, u):
     return degree
 
 def get_nbrs(H, u):
+    import sys
+
+    sys.path.append("HyperNetX")
+    import hypernetx as hnx
     """
         Returns the neighbours of u in hypergraph H
         Parameters
@@ -80,6 +84,10 @@ def get_nbrs(H, u):
 
 
 def get_hg_hnx(dataset):
+    import sys
+
+    sys.path.append("HyperNetX")
+    import hypernetx as hnx
     H = None
     if(dataset == "default"):
         dic = {

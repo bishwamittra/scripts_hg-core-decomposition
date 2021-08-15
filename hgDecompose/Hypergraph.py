@@ -1,7 +1,3 @@
-import sys
-
-sys.path.append("HyperNetX")
-import hypernetx as hnx
 import math
 
 class Hypergraph:
@@ -425,6 +421,11 @@ class Hypergraph:
         return H
 
     def get_hnx_format(self):
+        import sys
+
+        sys.path.append("HyperNetX")
+        import hypernetx as hnx
+        
         _tempH = {}
         for e_id in self.e_indices.keys():
             _tempH[e_id] = self.get_edge_byindex(e_id)

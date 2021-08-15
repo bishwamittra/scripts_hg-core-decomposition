@@ -1,8 +1,8 @@
 import sys
 sys.path.append("HyperNetX")
-import matplotlib.pyplot as plt
-import networkx as nx
-import hypernetx as hnx
+# import matplotlib.pyplot as plt
+# import networkx as nx
+# import hypernetx as hnx
 # from hgDecompose.hgDecompose import HGDecompose
 # from hgDecompose.utils import get_hg_hnx
 # from hgDecompose.newhgDecompose import HGDecompose
@@ -58,7 +58,11 @@ for iteration in range(args.iterations):
     elif (args.algo == 'par_improved2_nbr'):
         assert args.param_s > 0 # Is this assertion valid?
         hgDecompose.parallel_improved2NBR(H, s=args.param_s, verbose=args.verbose)
-        
+    
+    elif (args.algo == 'par_improved3_nbr'):
+        assert args.param_s > 0 # Is this assertion valid?
+        hgDecompose.parallel_improved3NBR(H, s=args.param_s, verbose=args.verbose)
+    
     else:
         raise RuntimeError(args.algo + " is not defined or implemented yet")
 
