@@ -2,6 +2,7 @@ from time import time
 import math
 from hgDecompose.Hypergraph import Hypergraph
 from copy import deepcopy
+from multiprocessing import Pool
 
 class HGDecompose():
     def __init__(self):
@@ -483,9 +484,25 @@ class HGDecompose():
             print("\n\nOutput")
             print(self.core)
     
-    def parallel_compute_core(self, H, lower, upper, verbose = True):
+    def parallel_compute_core(self, arg):
+        # unpacking arguments
+        H = self._working_H
+        lower, upper, verbose = arg
+        
         final_bucket = {}
         inv_bucket = {}
+
+        # local variables
+        _local_subgraph_time = 0
+        _local_num_subgraph_call = 0
+        _local_neighborhood_call_time = 0
+        _local_num_neighborhood_computation = 0
+        _local_num_bucket_update = 0
+        _local_bucket_update_time = 0
+        _local_core = {}
+
+
+        
 
         if (verbose):
             print("Inverval [%d,%d]" % (lower, upper))
@@ -493,35 +510,36 @@ class HGDecompose():
         V_kmin = [u for u in H.node_iterator() if H.precomputedub2[u] >= lower]
         start_subgraph_time = time()
         H_kmin = H.strong_subgraph(V_kmin)
-        self.subgraph_time += time() - start_subgraph_time
-        self.num_subgraph_call += 1
+        _local_subgraph_time += time() - start_subgraph_time
+        _local_num_subgraph_call += 1
         for u in V_kmin:
             start_neighborhood_call = time()
             num_nbrs_v = H_kmin.get_number_of_nbrs(u)
-            self.neighborhood_call_time += time() - start_neighborhood_call
-            self.num_neighborhood_computation += 1
+            _local_neighborhood_call_time += time() - start_neighborhood_call
+            _local_num_neighborhood_computation += 1
             if num_nbrs_v not in final_bucket:
                 final_bucket[num_nbrs_v] = set()
             final_bucket[num_nbrs_v].add(u)
             inv_bucket[u] = num_nbrs_v
-
+        
+        
         for k in range(lower, upper + 1):
             while len(final_bucket.get(k, [])) != 0:
                 v = final_bucket[k].pop()
                 # if (verbose):
                 #     print('removing: ',v)
-                self.core[v] = k
+                _local_core[v] = k
                 nbrs_Hkmin = H_kmin.neighbors(v)
                 start_subgraph_time = time()
                 H_kmin.removeV_transform(v, False)
-                self.subgraph_time += time() - start_subgraph_time
-                self.num_subgraph_call += 1
+                _local_subgraph_time += time() - start_subgraph_time
+                _local_num_subgraph_call += 1
                 
                 for u in nbrs_Hkmin:
                     start_neighborhood_call = time()
                     len_neighbors_u = H_kmin.get_number_of_nbrs(u)
-                    self.neighborhood_call_time += time() - start_neighborhood_call
-                    self.num_neighborhood_computation += 1
+                    _local_neighborhood_call_time += time() - start_neighborhood_call
+                    _local_num_neighborhood_computation += 1
                     if len_neighbors_u <= upper:
                         max_value = max(len_neighbors_u, k)
                         if max_value != inv_bucket[u]:
@@ -532,8 +550,20 @@ class HGDecompose():
                             prev_idx = inv_bucket[u]
                             final_bucket[prev_idx].remove(u)
                             inv_bucket[u] = max_value
-                            self.num_bucket_update += 1
-                            self.bucket_update_time += time() - start_bucket_update
+                            _local_num_bucket_update += 1
+                            _local_bucket_update_time += time() - start_bucket_update
+        # print("\n")
+        # print(_local_core)
+        # print("\n")
+
+        return _local_core, \
+                _local_bucket_update_time, \
+                _local_num_bucket_update, \
+                _local_neighborhood_call_time, \
+                _local_num_neighborhood_computation, \
+                _local_subgraph_time, \
+                _local_num_subgraph_call
+
 
     def parallel_improved2NBR(self, H, s = 1, verbose = True):
         """
@@ -590,9 +620,37 @@ class HGDecompose():
         #     print(sorted(llb.items()))
         
         start_loop_time = time()
-        for lower, upper in gen:
-            # print(lower,upper)
-            self.parallel_compute_core(H, lower, upper, verbose)
+        # for lower, upper in gen:
+        #     # print(lower,upper)
+        #     self.parallel_compute_core(H, lower, upper, verbose)
+        
+        # Parallel run
+        self._working_H = H
+        arguments = [(lower, upper, verbose) for lower, upper in gen]
+        with Pool(len(arguments)) as p:
+            return_values = p.map(self.parallel_compute_core, arguments)
+
+        # Retrieving return values
+        for val in return_values:
+            _local_core, \
+            _local_bucket_update_time, \
+            _local_num_bucket_update, \
+            _local_neighborhood_call_time, \
+            _local_num_neighborhood_computation, \
+            _local_subgraph_time, \
+            _local_num_subgraph_call = val
+
+            for v, k in _local_core.items():
+                self.core[v] = k
+            self.bucket_update_time += _local_bucket_update_time
+            self.num_bucket_update += _local_num_bucket_update
+            self.neighborhood_call_time += _local_neighborhood_call_time
+            self.num_neighborhood_computation += _local_num_neighborhood_computation
+            self.subgraph_time += _local_subgraph_time
+            self.num_subgraph_call += _local_num_subgraph_call
+
+
+
             
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
