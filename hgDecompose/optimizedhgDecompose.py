@@ -522,19 +522,18 @@ class HGDecompose():
                     len_neighbors_u = H_kmin.get_number_of_nbrs(u)
                     self.neighborhood_call_time += time() - start_neighborhood_call
                     self.num_neighborhood_computation += 1
-
-                    max_value = max(len_neighbors_u, k)
-
-                    if max_value != inv_bucket[u]:
-                        start_bucket_update = time()
-                        if max_value not in final_bucket:
-                            final_bucket[max_value] = set()
-                        final_bucket[max_value].add(u)
-                        prev_idx = inv_bucket[u]
-                        final_bucket[prev_idx].remove(u)
-                        inv_bucket[u] = max_value
-                        self.num_bucket_update += 1
-                        self.bucket_update_time += time() - start_bucket_update
+                    if len_neighbors_u <= upper:
+                        max_value = max(len_neighbors_u, k)
+                        if max_value != inv_bucket[u]:
+                            start_bucket_update = time()
+                            if max_value not in final_bucket:
+                                final_bucket[max_value] = set()
+                            final_bucket[max_value].add(u)
+                            prev_idx = inv_bucket[u]
+                            final_bucket[prev_idx].remove(u)
+                            inv_bucket[u] = max_value
+                            self.num_bucket_update += 1
+                            self.bucket_update_time += time() - start_bucket_update
 
     def parallel_improved2NBR(self, H, s = 1, verbose = True):
         """
