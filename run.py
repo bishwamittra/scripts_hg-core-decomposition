@@ -55,6 +55,10 @@ for iteration in range(args.iterations):
         assert args.param_s > 0 # Is this assertion valid?
         hgDecompose.improved2NBR(H, s=args.param_s, verbose=args.verbose)
 
+    elif (args.algo == 'par_improved2_nbr'):
+        assert args.param_s > 0 # Is this assertion valid?
+        hgDecompose.parallel_improved2NBR(H, s=args.param_s, verbose=args.verbose)
+        
     else:
         raise RuntimeError(args.algo + " is not defined or implemented yet")
 

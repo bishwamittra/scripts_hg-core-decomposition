@@ -21,13 +21,16 @@ class Hypergraph:
         self.degree_dict = {}
         self.init_nbrsize = {} # initial nbrhood sizes. can be precomputed.
         self.init_nbr = {}
+        self.init_eids = {}
         if _edgedict is None:  # Returns an empty Hypergraph
             return
 
         self.i = 0
         for e_id, e in _edgedict.items():
             _len = len(e)
+            
             self.e_indices[e_id] = (self.i, self.i + _len)
+            self.init_eids[e_id] = (self.i, self.i + _len)
             for v in e:
                 self.e_nodes.append(v)
                 if v not in self.inc_dict:
@@ -48,8 +51,10 @@ class Hypergraph:
         # Computing local upper bounds
         self.precomputedub2 = {}
         # Auxiliary variables to assist computation of lb2 and ub2
-        inv_bucket = {}
+        _inv_bucket = {}
         _bucket = {}
+        _min_llb = math.inf
+        self.sorted_ub_set = set() # || => upper bound for param_s
         for v in self.inc_dict.keys():
             len_neighbors_v = self.init_nbrsize[v]
             self.glb = min(self.glb,len_neighbors_v)
@@ -57,8 +62,9 @@ class Hypergraph:
             for u in self.init_nbr[v]:
                 self.precomputedlb2[v] = min(self.precomputedlb2.get(v, len_neighbors_v), self.init_nbrsize[u] - 1)
             
+            _min_llb = min(_min_llb, self.precomputedlb2[v])
             # node_to_neighbors[node] = neighbors
-            inv_bucket[v] = len_neighbors_v
+            _inv_bucket[v] = len_neighbors_v
             # print(node, neighbors)
             if len_neighbors_v not in _bucket:
                 _bucket[len_neighbors_v] = set()
@@ -68,16 +74,23 @@ class Hypergraph:
             while len(_bucket.get(k, [])) != 0:
                 v = _bucket[k].pop()
                 self.precomputedub2[v] = k
+                self.sorted_ub_set.add(k) # add computed local upper bound to ub_set
                 for u in self.init_nbr[v]:
                     if u not in self.precomputedub2:
-                        max_value = max(inv_bucket[u] - 1, k)
-                        _bucket[inv_bucket[u]].remove(u)
+                        max_value = max(_inv_bucket[u] - 1, k)
+                        _bucket[_inv_bucket[u]].remove(u)
                         if(max_value not in _bucket):
                             _bucket[max_value] = set()
                         _bucket[max_value].add(u)
-                        inv_bucket[u] = max_value
+                        _inv_bucket[u] = max_value
+        # print(self.precomputedub2)
+        self.sorted_ub_set.add(_min_llb - 1)
+        self.sorted_ub_set = sorted(list(self.sorted_ub_set),reverse = True)
         del _bucket
-        del inv_bucket
+        del _inv_bucket
+
+        # Bookkeeping variable to accelerate  addv_transform()
+        # self.prev_V = set()
 
     def get_init_nbr(self, v):
         return self.init_nbr[v]
@@ -177,7 +190,30 @@ class Hypergraph:
 
         if v in self.degree_dict:
             del self.degree_dict[v]
+    # TODO
+    # def addV_transform(self, S):
+    #     pass
+    #     prev_v = prev_v.union(S)
+    #     for every edge e:
+    #         if e \subset prev_v:
+    #             if e.id not already exist:
+    #                 add (e)
 
+    def adV_transform(self, S):
+        """ 
+        S: is a set of vertices
+        We assume the current hypergraph is already a strong subgraph. meaning the inc_dict and e_indices are maintained.
+        """
+        self.prev_V = self.prev_V.union(S)
+        for e in self.init_eids: # But this will not give me all the edge_id's
+            start_e,end_e = self.init_eids[e]
+            edge = self.e_nodes[start_e:end_e]
+            if set(edge).issubset(self.prev_V):
+                self.e_indices[e] = self.init_eids[e]
+                for u in edge:
+                    self.inc_dict[u].add(e)
+                
+                
     # def removeV_transform(self, v, verbose=False):
     #     """ removes input vertex v and transforms this hypergraph into a sub-hypergraph strongly induced by V\{v} """
     #
