@@ -11,7 +11,8 @@ mythread=$((OMPI_COMM_WORLD_RANK))
 # tlimit="2000"
 # memlimit="4000000"
 # ulimit -v $memlimit
-ulimit -v unlimited
+# ulimit -v unlimited
+ulimit -v 16000000
 
 
 # multithread

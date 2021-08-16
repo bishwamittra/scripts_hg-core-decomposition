@@ -10,11 +10,12 @@ args = parser.parse_args()
 # algo_list = ['naive_nbr', 'improved_nbr', 'improved2_nbr', 'naive_degree']
 # algo_list = ['naive_nbr', 'improved_nbr', 'naive_degree']
 # algo_list = ['naive_nbr', 'improved_nbr','improved2_nbr','par_improved2_nbr']
-algo_list = ['par_improved2_nbr','par_improved3_nbr','naive_nbr', 'improved_nbr','improved2_nbr']
+# algo_list = ['par_improved2_nbr','par_improved3_nbr','naive_nbr', 'improved_nbr','improved2_nbr']
+algo_list = ['par_improved2_nbr','par_improved3_nbr']
 # dataset_list = ['dblp','amazon']
 # dataset_list = ['syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact', 'dblp','amazon']
 dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact','dblp']
-n_thread_list = [2,4,8,16,32]
+n_thread_list = [1,2,4,8,16,32]
 # param_s_dict = {
 #                 'syn':(-1,3), 'bin_1':(25, 33), 'bin_2':(184, 193), 'bin_4':(19,24),
 #                  'bin_5':(128, 140), 'enron': (-1, 40), 'congress': (1, 368), 'contact': (18, 47), 
