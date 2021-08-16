@@ -1,18 +1,13 @@
-import sys
-sys.path.append("../")
-# sys.path.append("HyperNetX")
-# import matplotlib.pyplot as plt
-# import networkx as nx
-# import hypernetx as hnx
-# from hgDecompose.hgDecompose import HGDecompose
-# from hgDecompose.utils import get_hg_hnx
-# from hgDecompose.newhgDecompose import HGDecompose
+# import sys
+# sys.path.append("../")
 from hgDecompose.optimizedhgDecompose import HGDecompose
 from hgDecompose.utils import get_hg
 import argparse
 import pandas as pd
 import os
+os.system("mkdir -p tests/tmp")
 from copy import deepcopy
+import pickle
 
 # arguments
 parser = argparse.ArgumentParser()
@@ -34,41 +29,28 @@ print("HG construction done!")
 assert input_H is not None
 
 # Forced values
+fname = "tests/tmp/" + args.dataset + ".pkl"
+if(not os.path.isfile(fname)):
+    H = deepcopy(input_H)
+    hgDecompose = HGDecompose()
+    if(args.algo_base == "naive_nbr"):
+        hgDecompose.naiveNBR(H, verbose=args.verbose)
+    else:
 
+        raise RuntimeError(args.algo_base + " is not defined or implemented yet")
 
-H = deepcopy(input_H)
-# entry = {}
-# entry['algo'] = args.algo
-# entry['dataset'] = args.dataset
-# entry['num_threads'] = args.nthreads
-# run algo
-hgDecompose = HGDecompose()
-if(args.algo_base == "naive_nbr"):
-    hgDecompose.naiveNBR(H, verbose=args.verbose)
+    core_base = hgDecompose.core
 
-elif(args.algo_base == "improved_nbr"):
-    hgDecompose.improvedNBR(H, verbose=args.verbose)
-    
-elif(args.algo_base == "naive_degree"):
-    hgDecompose.naiveDeg(H, verbose=args.verbose)
+    # dump file
+    with open(fname, 'wb') as handle:
+        pickle.dump(hgDecompose, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-
-elif(args.algo_base == "improved2_nbr"):
-    assert args.param_s > 0 # Is this assertion valid?
-    hgDecompose.improved2NBR(H, s=args.param_s, verbose=args.verbose)
-
-elif (args.algo_base == 'par_improved2_nbr'):
-    assert args.param_s > 0 # Is this assertion valid?
-    hgDecompose.parallel_improved2NBR(H, s=args.param_s, num_threads = args.nthreads, verbose=args.verbose)
-
-elif (args.algo_base == 'par_improved3_nbr'):
-    assert args.param_s > 0 # Is this assertion valid?
-    hgDecompose.parallel_improved3NBR(H, s=args.param_s, num_threads = args.nthreads, verbose=args.verbose)
 
 else:
-    raise RuntimeError(args.algo_base + " is not defined or implemented yet")
-
-core_base = hgDecompose.core
+    # print("Retrieving saved file")
+    with open(fname, 'rb') as handle:
+        hgDecompose = pickle.load(handle)
+        core_base = hgDecompose.core
 
 
 # compared algo
@@ -118,33 +100,3 @@ for v in core_compared:
 
 print("\nAll tests passed")
 
-
-
-# entry['core'] = hgDecompose.core
-# entry['param_s'] = args.param_s
-# entry['execution time'] = hgDecompose.execution_time
-# entry['bucket update time'] = hgDecompose.bucket_update_time
-# entry['neighborhood call time'] = hgDecompose.neighborhood_call_time
-# entry['degree call time'] = hgDecompose.degree_call_time
-# entry['num bucket update'] = hgDecompose.num_bucket_update
-# entry['num neighborhood computation'] = hgDecompose.num_neighborhood_computation
-# entry['num degree computation'] = hgDecompose.num_degree_computation
-# entry['subgraph computation time'] = hgDecompose.subgraph_time
-# entry['num subgraph call'] = hgDecompose.num_subgraph_call
-# entry['init time'] = hgDecompose.init_time
-# entry['outerloop time'] = hgDecompose.loop_time
-# entry['total iteration'] = hgDecompose.total_iteration
-# entry['inner iteration'] = hgDecompose.inner_iteration
-# # print(entry)
-# result = pd.DataFrame()
-# result = result.append(entry, ignore_index=True)
-# # print('result: ',result['num subgraph call'].values[0],',',result['subgraph computation time'].values[0])
-# # print('tolist(): ',result.columns.tolist())
-# if(args.verbose and iteration==0): 
-#     print(entry)
-#     print("\n")
-#     print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
-
-# os.system("mkdir -p data/output")
-# result.to_csv('data/output/result.csv', header=False,
-#                         index=False, mode='a')

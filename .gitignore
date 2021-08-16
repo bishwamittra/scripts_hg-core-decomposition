@@ -11,6 +11,8 @@ data/output/fig/*
 data/datasets/*
 run_*/*
 tests/data/*
+tests/tmp/*
+tests/tests/*
 
 # C extensions
 *.so
