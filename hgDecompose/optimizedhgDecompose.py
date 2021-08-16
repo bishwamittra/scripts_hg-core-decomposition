@@ -358,37 +358,38 @@ class HGDecompose():
         """
         start_execution_time = time()
 
-        num_nodes = 0
+        # num_nodes = 0
         nodes = set()
 
-        glb = H.glb
+        # glb = H.glb
         llb = {}
-        gub = H.gub
+        # gub = H.gub
         lub = {}
 
         start_init_time = time()
         # Initial bucket fill-up
         for node in H.node_iterator():
-            len_neighbors = H.get_init_nbrlen(node)
+            # len_neighbors = H.get_init_nbrlen(node)
             llb[node] = H.precomputedlb2[node]
             lub[node] = H.precomputedub2[node]
-            self._node_to_num_neighbors[node] = len_neighbors
+            # self._node_to_num_neighbors[node] = len_neighbors
             
-            if len_neighbors not in self.bucket:
-                self.bucket[len_neighbors] = set()
-            self.bucket[len_neighbors].add(node)
-            num_nodes += 1
+            # if len_neighbors not in self.bucket:
+            #     self.bucket[len_neighbors] = set()
+            # self.bucket[len_neighbors].add(node)
+            # num_nodes += 1
             nodes.add(node)
 
         if(verbose):
+            pass
             # print("\n---------- Initial neighbors -------")
             # for node in H.nodes():
             #     print(node, H.neighbors(node))
             # print()
 
-            print("\n---------- Initial bucket -------")
-            print(self.bucket)
-            print()
+            # print("\n---------- Initial bucket -------")
+            # print(self.bucket)
+            # print()
 
             # print("\n -------- local lower bound --------")
             # print(llb)
@@ -565,10 +566,9 @@ class HGDecompose():
                 _local_num_subgraph_call
 
     def parallel3_compute_core(self, arg):
-
         # unpacking arguments
-        # H = self._working_H
-        H_kmin = deepcopy(self._working_H)
+        H_kmin = self._working_H
+        # H_kmin = deepcopy(self._working_H)
         lower, upper, verbose = arg
         
         final_bucket = {}
@@ -655,40 +655,41 @@ class HGDecompose():
         """
         start_execution_time = time()
 
-        num_nodes = 0
-        nodes = set()
+        # num_nodes = 0
+        # nodes = set()
 
-        glb = H.glb
+        # glb = H.glb
         llb = {}
-        gub = H.gub
+        # gub = H.gub
         lub = {}
 
         start_init_time = time()
-        # Initial bucket fill-up
+       
         for node in H.node_iterator():
            
-            len_neighbors = H.get_init_nbrlen(node)
+            # len_neighbors = H.get_init_nbrlen(node)
             
             llb[node] = H.precomputedlb2[node]
             lub[node] = H.precomputedub2[node]
             
-            self._node_to_num_neighbors[node] = len_neighbors
+            # self._node_to_num_neighbors[node] = len_neighbors
             
-            if len_neighbors not in self.bucket:
-                self.bucket[len_neighbors] = set()
-            self.bucket[len_neighbors].add(node)
-            num_nodes += 1
-            nodes.add(node)
+            # if len_neighbors not in self.bucket:
+            #     self.bucket[len_neighbors] = set()
+            # self.bucket[len_neighbors].add(node)
+            # num_nodes += 1
+            # nodes.add(node)
 
         if(verbose):
+            pass
             # print("\n---------- Initial neighbors -------")
             # for node in H.nodes():
             #     print(node, H.neighbors(node))
             # print()
 
-            print("\n---------- Initial bucket -------")
-            print(self.bucket)
-            print()
+            # print("\n---------- Initial bucket -------")
+            # print(self.bucket)
+            # print()
 
             # print("\n -------- local lower bound --------")
             # print(llb)
@@ -752,40 +753,41 @@ class HGDecompose():
         """
         start_execution_time = time()
 
-        num_nodes = 0
-        nodes = set()
+        # num_nodes = 0
+        # nodes = set()
 
-        glb = H.glb
+        # glb = H.glb
         llb = {}
-        gub = H.gub
+        # gub = H.gub
         lub = {}
 
         start_init_time = time()
         # Initial bucket fill-up
         for node in H.node_iterator():
            
-            len_neighbors = H.get_init_nbrlen(node)
+            # len_neighbors = H.get_init_nbrlen(node)
             
             llb[node] = H.precomputedlb2[node]
             lub[node] = H.precomputedub2[node]
             
-            self._node_to_num_neighbors[node] = len_neighbors
+            # self._node_to_num_neighbors[node] = len_neighbors
             
-            if len_neighbors not in self.bucket:
-                self.bucket[len_neighbors] = set()
-            self.bucket[len_neighbors].add(node)
-            num_nodes += 1
-            nodes.add(node)
+            # if len_neighbors not in self.bucket:
+            #     self.bucket[len_neighbors] = set()
+            # self.bucket[len_neighbors].add(node)
+            # num_nodes += 1
+            # nodes.add(node)
 
         if(verbose):
+            pass
             # print("\n---------- Initial neighbors -------")
             # for node in H.nodes():
             #     print(node, H.neighbors(node))
             # print()
 
-            print("\n---------- Initial bucket -------")
-            print(self.bucket)
-            print()
+            # print("\n---------- Initial bucket -------")
+            # print(self.bucket)
+            # print()
 
             # print("\n -------- local lower bound --------")
             # print(llb)
