@@ -10,6 +10,7 @@ backup_output/*
 data/output/fig/*
 data/datasets/*
 run_*/*
+tests/data/*
 
 # C extensions
 *.so
