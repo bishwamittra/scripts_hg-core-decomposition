@@ -1,5 +1,5 @@
-# import sys
-# sys.path.append("../")
+import sys
+sys.path.append("../")
 from hgDecompose.optimizedhgDecompose import HGDecompose
 from hgDecompose.utils import get_hg
 import argparse
@@ -24,14 +24,15 @@ args = parser.parse_args()
 
 # hyper-graph construction
 # H = get_hg_hnx(args.dataset)
-input_H = get_hg(args.dataset)
+# input_H = get_hg(args.dataset)
 print("HG construction done!")
-assert input_H is not None
+# assert input_H is not None
 
 # Forced values
 fname = "tests/tmp/" + args.dataset + ".pkl"
 if(not os.path.isfile(fname)):
-    H = deepcopy(input_H)
+    H = get_hg(args.dataset)
+    assert H is not None
     hgDecompose = HGDecompose()
     if(args.algo_base == "naive_nbr"):
         hgDecompose.naiveNBR(H, verbose=args.verbose)
@@ -54,7 +55,9 @@ else:
 
 
 # compared algo
-H = deepcopy(input_H)
+# H = deepcopy(input_H)
+H = get_hg(args.dataset)
+assert H is not None
 hgDecompose = HGDecompose()
 if(args.algo == "naive_nbr"):
     hgDecompose.naiveNBR(H, verbose=args.verbose)
@@ -91,12 +94,12 @@ assert len(core_base) == len(core_compared), "Two returned cores do not have sam
 # core_base contains in core_compared
 for v in core_base:
     assert v in core_compared, str(v) + " is not in core_compared"
-    assert core_base[v] == core_compared[v], "Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
+    assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
 
 # core_compared contains in core_base
 for v in core_compared:
     assert v in core_base, str(v) + " is not in core_base"
-    assert core_base[v] == core_compared[v], "Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
+    assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
 
 print("\nAll tests passed")
 

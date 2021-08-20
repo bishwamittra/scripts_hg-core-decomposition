@@ -39,25 +39,28 @@ class Hypergraph:
                 self.init_nbr[v] = nbr_v  # neighbourbood set update
             self.i += _len
 
+        
+
         # Computing global upper and lower bounds
         self.glb = math.inf
         self.gub = -math.inf
         # Computing local lower bounds
         self.precomputedlb2 = {}
-        # Computing local upper bounds
-        self.precomputedub2 = {}
+        # # Computing local upper bounds
+        self.lub = {}
         # Auxiliary variables to assist computation of lb2 and ub2
         _inv_bucket = {}
         _bucket = {}
         _min_llb = math.inf
         self.sorted_ub_set = set() # || => upper bound for param_s
-        for v in self.inc_dict.keys():
+        for v in self.node_iterator():
             len_neighbors_v = self.init_nbrsize[v]
             self.glb = min(self.glb,len_neighbors_v)
             self.gub = max(self.gub, len_neighbors_v)
+            min_u = math.inf
             for u in self.init_nbr[v]:
-                self.precomputedlb2[v] = min(self.precomputedlb2.get(v, len_neighbors_v), self.init_nbrsize[u] - 1)
-            
+                min_u = min(min_u, self.init_nbrsize[u] - 1)
+            self.precomputedlb2[v] = min(min_u, len_neighbors_v - 1)
             _min_llb = min(_min_llb, self.precomputedlb2[v])
             # node_to_neighbors[node] = neighbors
             _inv_bucket[v] = len_neighbors_v
@@ -69,24 +72,30 @@ class Hypergraph:
         for k in range(self.glb, self.gub):
             while len(_bucket.get(k, [])) != 0:
                 v = _bucket[k].pop()
-                self.precomputedub2[v] = k
+                self.lub[v] = k
                 self.sorted_ub_set.add(k) # add computed local upper bound to ub_set
                 for u in self.init_nbr[v]:
-                    if u not in self.precomputedub2:
+                    if u not in self.lub:
                         max_value = max(_inv_bucket[u] - 1, k)
                         _bucket[_inv_bucket[u]].remove(u)
                         if(max_value not in _bucket):
                             _bucket[max_value] = set()
                         _bucket[max_value].add(u)
                         _inv_bucket[u] = max_value
-        # print(self.precomputedub2)
+        
         self.sorted_ub_set.add(_min_llb - 1)
-        self.sorted_ub_set = sorted(list(self.sorted_ub_set),reverse = True)
+        self.sorted_ub_set = sorted(list(self.sorted_ub_set), reverse=True)
         del _bucket
         del _inv_bucket
 
-        # Bookkeeping variable to accelerate  addv_transform()
-        # self.prev_V = set()
+        
+        self.llb = {}
+        # Local lower bound computation
+        for v in self.node_iterator():
+            _max = -math.inf
+            for e_id in self.inc_dict[v]:
+                _max = max(_max, len(self.get_edge_byindex(e_id)) - 1)
+            self.llb[v] = _max
 
     def get_init_nbr(self, v):
         return self.init_nbr[v]
