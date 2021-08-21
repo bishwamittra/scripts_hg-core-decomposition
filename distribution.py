@@ -8,10 +8,10 @@ args = parser.parse_args()
 
 # ['enron', 'congress', 'contact', 'syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5']
 # algo_list = ['naive_nbr', 'improved_nbr', 'improved2_nbr', 'naive_degree']
-# algo_list = ['naive_nbr', 'improved_nbr', 'naive_degree']
+algo_list = ['naive_nbr', 'improved_nbr']
 # algo_list = ['naive_nbr', 'improved_nbr','improved2_nbr','par_improved2_nbr']
 # algo_list = ['par_improved2_nbr','par_improved3_nbr','naive_nbr', 'improved_nbr','improved2_nbr']
-algo_list = ['par_improved2_nbr','par_improved3_nbr','improved2_nbr']
+# algo_list = ['par_improved2_nbr','par_improved3_nbr','improved2_nbr']
 # dataset_list = ['dblp','amazon']
 # dataset_list = ['syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact', 'dblp','amazon']
 dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact','congress', 'dblp']

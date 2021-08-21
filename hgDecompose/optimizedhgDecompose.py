@@ -354,7 +354,8 @@ class HGDecompose():
         # Initial bucket fill-up
         start_init_time = time()
         for node in H.node_iterator():
-            lb = max(H.llb[node],lb1)
+            # lb = max(H.llb[node],lb1)
+            lb = H.llb[node]
 
             inverse_bucket[node] = lb
 
@@ -452,26 +453,26 @@ class HGDecompose():
         """
         start_execution_time = time()
         # num_nodes = 0
-        nodes = set()
+        # nodes = set()
 
         # glb = H.glb
-        llb = {}
+        llb = H.llb
         # gub = H.gub
-        lub = {}
+        lub = H.lub
 
         start_init_time = time()
         # Initial bucket fill-up
-        for node in H.node_iterator():
+        # for node in H.node_iterator():
             # len_neighbors = H.get_init_nbrlen(node)
-            llb[node] = H.precomputedlb2[node]
-            lub[node] = H.precomputedub2[node]
+            # llb[node] = H.precomputedlb2[node]
+            # lub[node] = H.precomputedub2[node]
             # self._node_to_num_neighbors[node] = len_neighbors
             
             # if len_neighbors not in bucket:
             #     bucket[len_neighbors] = set()
             # bucket[len_neighbors].add(node)
             # num_nodes += 1
-            nodes.add(node)
+            # nodes.add(node)
 
         if(verbose):
             pass
@@ -506,7 +507,9 @@ class HGDecompose():
             if(verbose):
                 print("Inverval [%d,%d]"%(lower, upper))
 
-            V_kmin = [u for u in nodes if lub[u] >= lower]
+            V_kmin = [u for u in H.node_iterator() if lub[u] >= lower]
+            if(verbose):
+                print("Vkmin: ", V_kmin)
             for u in V_kmin:
                 if u in self.core:
                     max_val = max(lower-1, llb[u], self.core[u])
@@ -554,22 +557,23 @@ class HGDecompose():
                         
 
                         for u in nbrs_Hkmin:
-                            start_neighborhood_call = time()
-                            len_neighbors_u = H_kmin.get_number_of_nbrs(u)
-                            self.neighborhood_call_time  += time() - start_neighborhood_call
-                            self.num_neighborhood_computation += 1
-                    
-                            max_value = max(len_neighbors_u, k)
-                            start_bucket_update = time()
-                            if max_value != inv_bucket[u]:
-                                if max_value not in final_bucket:
-                                    final_bucket[max_value] = set()
-                                final_bucket[max_value].add(u)
-                                prev_idx = inv_bucket[u]
-                                final_bucket[prev_idx].remove(u)
-                                inv_bucket[u] = max_value
-                                self.num_bucket_update += 1
-                            self.bucket_update_time += time() - start_bucket_update
+                            if not setlb[u]:
+                                start_neighborhood_call = time()
+                                len_neighbors_u = H_kmin.get_number_of_nbrs(u)
+                                self.neighborhood_call_time  += time() - start_neighborhood_call
+                                self.num_neighborhood_computation += 1
+                        
+                                max_value = max(len_neighbors_u, k)
+                                start_bucket_update = time()
+                                if max_value != inv_bucket[u]:
+                                    if max_value not in final_bucket:
+                                        final_bucket[max_value] = set()
+                                    final_bucket[max_value].add(u)
+                                    prev_idx = inv_bucket[u]
+                                    final_bucket[prev_idx].remove(u)
+                                    inv_bucket[u] = max_value
+                                    self.num_bucket_update += 1
+                                self.bucket_update_time += time() - start_bucket_update
                         
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
@@ -752,18 +756,18 @@ class HGDecompose():
         # nodes = set()
 
         # glb = H.glb
-        llb = {}
+        llb = H.llb
         # gub = H.gub
-        lub = {}
+        lub = H.lub
 
         start_init_time = time()
        
-        for node in H.node_iterator():
+        # for node in H.node_iterator():
            
             # len_neighbors = H.get_init_nbrlen(node)
             
-            llb[node] = H.precomputedlb2[node]
-            lub[node] = H.precomputedub2[node]
+            # llb[node] = H.precomputedlb2[node]
+            # lub[node] = H.precomputedub2[node]
             
             # self._node_to_num_neighbors[node] = len_neighbors
             
@@ -850,18 +854,18 @@ class HGDecompose():
         # nodes = set()
 
         # glb = H.glb
-        llb = {}
+        llb = H.llb
         # gub = H.gub
-        lub = {}
+        lub = H.lub
 
         start_init_time = time()
         # Initial bucket fill-up
-        for node in H.node_iterator():
+        # for node in H.node_iterator():
            
             # len_neighbors = H.get_init_nbrlen(node)
             
-            llb[node] = H.precomputedlb2[node]
-            lub[node] = H.precomputedub2[node]
+            # llb[node] = H.precomputedlb2[node]
+            # lub[node] = H.precomputedub2[node]
             
             # self._node_to_num_neighbors[node] = len_neighbors
             
