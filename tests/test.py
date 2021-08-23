@@ -44,7 +44,7 @@ if(not os.path.isfile(fname)):
 
     # dump file
     with open(fname, 'wb') as handle:
-        pickle.dump(hgDecompose, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(hgDecompose, handle, protocol= 4)
 
 
 else:

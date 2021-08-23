@@ -112,7 +112,7 @@ class HGDecompose():
                         print("-------- Updated bucket ---------")
                         print(bucket)
                         print()
-
+        # print(self.core)
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
 
@@ -356,9 +356,7 @@ class HGDecompose():
         for node in H.node_iterator():
             # lb = max(H.llb[node],lb1)
             lb = H.llb[node]
-
             inverse_bucket[node] = lb
-
             if lb not in bucket:
                 bucket[lb] = set()
             bucket[lb].add(node)
@@ -384,8 +382,166 @@ class HGDecompose():
                     print("k:", k, "node:", v)
 
                 if setlb[v]:
-                    len_nbr_v = H.get_number_of_nbrs(v)
 
+                    start_neighborhood_call = time()
+                    len_nbr_v = H.get_number_of_nbrs(v)
+                    self.neighborhood_call_time += time() - start_neighborhood_call
+                    self.num_neighborhood_computation += 1
+
+                    if len_nbr_v < k:
+                        self.core[v] = k
+                        setlb[v] = True
+
+                        start_neighborhood_call = time()
+                        nbr_v = H.neighbors(v)
+                        self.neighborhood_call_time += time() - start_neighborhood_call
+                        self.num_neighborhood_computation += 1
+
+                        if (verbose):
+                            print('removing ', v)
+                        start_subgraph_time = time()
+                        H.removeV_transform(v, verbose)  # Store.... + executation time..
+                        # H.removeV_transform2(v, verbose)
+                        self.subgraph_time += time() - start_subgraph_time
+                        self.num_subgraph_call += 1
+                        if (verbose):
+                            print('nbrs: ', nbr_v)
+                        for u in nbr_v:
+                            self.total_iteration += 1
+                            if not setlb[u]:
+                                self.inner_iteration += 1
+                                start_neighborhood_call = time()
+                                len_neighbors_u = H.get_number_of_nbrs(u)
+                                self.neighborhood_call_time += time() - start_neighborhood_call
+                                self.num_neighborhood_computation += 1
+
+                                max_value = max(len_neighbors_u, k)
+                                if (verbose):
+                                    print("max core between", k, 'and', len_neighbors_u, "is ", max_value)
+                                    print("The location of", u, "is updated from", inverse_bucket[u], "to",
+                                        max_value)
+
+                                start_bucket_update = time()
+                                bucket[inverse_bucket[u]].remove(u)
+
+                                if max_value not in bucket:
+                                    bucket[max_value] = set()
+                                bucket[max_value].add(u)
+                                self.num_bucket_update += 1
+                                self.bucket_update_time += time() - start_bucket_update
+
+                                # update new location of u
+                                inverse_bucket[u] = max_value
+                            
+                    else:
+                        start_bucket_update = time()
+                        if len_nbr_v not in bucket:
+                            bucket[len_nbr_v] = set()
+                        bucket[len_nbr_v].add(v)
+                        self.num_bucket_update += 1
+                        self.bucket_update_time += time() - start_bucket_update
+
+                        # update new location of u
+                        inverse_bucket[v] = len_nbr_v
+                        setlb[v] = False
+                else:
+                    self.core[v] = k
+                    setlb[v] = True
+
+                    start_neighborhood_call = time()
+                    nbr_v = H.neighbors(v)
+                    self.neighborhood_call_time += time() - start_neighborhood_call
+                    self.num_neighborhood_computation += 1
+                    if (verbose):
+                        print('removing ', v)
+                    start_subgraph_time = time()
+                    H.removeV_transform(v, verbose)  # Store.... + executation time..
+                    # H.removeV_transform2(v, verbose)
+                    self.subgraph_time += time() - start_subgraph_time
+                    self.num_subgraph_call += 1
+                    if (verbose):
+                        print('nbrs: ', nbr_v)
+                    for u in nbr_v:
+                        self.total_iteration += 1
+                        if not setlb[u]:
+                            self.inner_iteration += 1
+                            start_neighborhood_call = time()
+                            len_neighbors_u = H.get_number_of_nbrs(u)
+                            self.neighborhood_call_time += time() - start_neighborhood_call
+                            self.num_neighborhood_computation += 1
+
+                            max_value = max(len_neighbors_u, k)
+                            if (verbose):
+                                print("max core between", k, 'and', len_neighbors_u, "is ", max_value)
+                                print("The location of", u, "is updated from", inverse_bucket[u], "to",
+                                    max_value)
+
+                            start_bucket_update = time()
+                            bucket[inverse_bucket[u]].remove(u)
+
+                            if max_value not in bucket:
+                                bucket[max_value] = set()
+                            bucket[max_value].add(u)
+                            self.num_bucket_update += 1
+                            self.bucket_update_time += time() - start_bucket_update
+
+                            # update new location of u
+                            inverse_bucket[u] = max_value
+
+                            if (verbose):
+                                print("-------- Updated bucket ---------")
+                                print(bucket)
+                                print()
+
+        self.loop_time = time() - start_loop_time
+        self.execution_time = time() - start_execution_time
+
+        if (verbose):
+            print("\n\nOutput")
+            print(self.core)
+
+    def improvedNBR_simplified(self, H, verbose=True):
+        # print(""" Bishwa simplified the correct version """)
+        start_execution_time = time()
+        bucket = {}
+        lb1 = H.glb
+        ub1 = H.gub
+        inverse_bucket = {}
+        setlb = {}
+        # Initial bucket fill-up
+        start_init_time = time()
+        for node in H.node_iterator():
+            # lb = max(H.llb[node],lb1)
+            lb = H.llb[node]
+
+            inverse_bucket[node] = lb
+
+            if lb not in bucket:
+                bucket[lb] = set()
+            bucket[lb].add(node)
+            setlb[node] = True
+
+        self.init_time = time() - start_init_time
+
+        if (verbose):
+            print("\n---------- Initial neighbors -------")
+            # for node in H.nodes():
+            #     print(node, H.neighbors(node))
+            # print()
+
+            print("\n---------- Initial bucket -------")
+            print(bucket)
+            print()
+
+        start_loop_time = time()
+
+        for k in range(lb1, ub1 + 1):
+            while len(bucket.get(k, [])) != 0:
+                v = bucket[k].pop()  # get first element in the
+                if (verbose):
+                    print("k:", k, "node:", v, ' setlb[v]: ',setlb[v])
+                len_nbr_v = H.get_number_of_nbrs(v)
+                if setlb[v] and len_nbr_v >= k:
                     if len_nbr_v not in bucket:
                         bucket[len_nbr_v] = set()
                     bucket[len_nbr_v].add(v)
@@ -394,6 +550,7 @@ class HGDecompose():
                     inverse_bucket[v] = len_nbr_v
                     setlb[v] = False
                 else:
+                    # print('assigning core: ',v)
                     self.core[v] = k
                     setlb[v] = True
 
@@ -410,6 +567,7 @@ class HGDecompose():
                     for u in nbr_v:
                         self.total_iteration += 1
                         if not setlb[u]:
+                            # print('updating neighbor(v)', u)
                             self.inner_iteration += 1
                             start_neighborhood_call = time()
                             len_neighbors_u = H.get_number_of_nbrs(u)

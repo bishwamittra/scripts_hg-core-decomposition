@@ -46,6 +46,9 @@ for iteration in range(args.iterations):
 
     elif(args.algo == "improved_nbr"):
         hgDecompose.improvedNBR(H, verbose=args.verbose)
+
+    elif(args.algo == "improved_nbr_simple"):
+        hgDecompose.improvedNBR_simplified(H, verbose=args.verbose)
         
     elif(args.algo == "naive_degree"):
         hgDecompose.naiveDeg(H, verbose=args.verbose)

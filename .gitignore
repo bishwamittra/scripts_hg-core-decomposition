@@ -13,7 +13,7 @@ run_*/*
 tests/data/*
 tests/tmp/*
 tests/tests/*
-
+vis/*
 # C extensions
 *.so
 
