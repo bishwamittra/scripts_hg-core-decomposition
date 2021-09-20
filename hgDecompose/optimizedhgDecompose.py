@@ -501,7 +501,7 @@ class HGDecompose():
             print(self.core)
 
     def improvedNBR_simplified(self, H, verbose=True):
-        # print(""" Bishwa simplified the correct version """)
+        # print(""" Bishwa simplified the correct version (improvedNBR()) by optimizing if-else conditions .  """)
         start_execution_time = time()
         bucket = {}
         lb1 = H.glb
@@ -606,6 +606,7 @@ class HGDecompose():
 
     def improved2NBR(self, H, s = 1, verbose = True):
         """ 
+        This is our original top-down, UB-based algorithm.
         :param H -> Hypergraph
         :param s -> Integer, algorithm parameter. 
         """
@@ -905,6 +906,7 @@ class HGDecompose():
 
     def parallel_improved2NBR(self, H, s = 1, num_threads = 4, verbose = True):
         """
+        This is our original top-down, UB-based algorithms parallelized into threads. (Does not give correct core-numbers)
         :param H -> Hypergraph
         :param s -> Integer, algorithm parameter.
         """
@@ -1002,9 +1004,11 @@ class HGDecompose():
 
     def parallel_improved3NBR(self, H, s = 1, num_threads = 4, verbose = True):
         """
+        This is our original top-down, UB-based algorithms parallelized into threads. (Does not give correct core-numbers).
+        Unlike parallel_improved2NBR() this algorithm does not compute strong subhypergraph, rather each thread work on copies of the 
+        original hypergraph.
         :param H -> Hypergraph
         :param s -> Integer, algorithm parameter.
-        Does not compute strong subhypergraph.
         """
         start_execution_time = time()
 
