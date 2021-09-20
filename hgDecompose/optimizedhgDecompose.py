@@ -3,6 +3,7 @@ import math
 from hgDecompose.Hypergraph import Hypergraph
 from copy import deepcopy
 from multiprocessing import Pool
+from hgDecompose.utils import operator_H
 
 class HGDecompose():
     def __init__(self):
@@ -26,6 +27,40 @@ class HGDecompose():
         
     def preprocess(self):
         pass
+
+
+
+    def local_core(self, H, verbose = True):
+        start_execution_time = time()
+        num_nodes = 0
+        
+
+        # Init
+        start_init_time = time()
+        for node in H.node_iterator():
+            len_neighbors = H.get_init_nbrlen(node)
+            self.core[node] = len_neighbors
+            num_nodes += 1
+        self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        # Main loop
+        start_loop_time = time()
+        tau = H.get_M()
+        for k in (1, tau + 1):
+            for node in H.node_iterator():
+                self.core[node] =  operator_H([self.core[j] for j in H.get_init_nbr(node)])     
+                if(verbose):
+                    print("k:", k, "node:", node)
+        self.loop_time = time() - start_loop_time
+
+        # if(verbose):
+        #     print(self.core)
+
+
+        self.execution_time = time() - start_execution_time
 
     def naiveNBR(self, H, verbose = True):
         start_execution_time = time()
@@ -1099,3 +1134,5 @@ class HGDecompose():
         if(verbose):
             print("\n\nOutput")
             print(self.core)
+
+

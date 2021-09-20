@@ -81,6 +81,10 @@ elif (args.algo == 'par_improved3_nbr'):
     assert args.param_s > 0 # Is this assertion valid?
     hgDecompose.parallel_improved3NBR(H, s=args.param_s, num_threads = args.nthreads, verbose=args.verbose)
 
+elif(args.algo == "local_core"):
+        hgDecompose.local_core(H, verbose=args.verbose)
+
+
 else:
     raise RuntimeError(args.algo + " is not defined or implemented yet")
 

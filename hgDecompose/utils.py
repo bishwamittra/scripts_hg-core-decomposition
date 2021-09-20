@@ -331,3 +331,23 @@ def get_nbr_stats(H):
     stat['75%'] = _temp['75%']
     return stat
 
+
+import numpy as np
+
+# https://towardsdatascience.com/fastest-way-to-calculate-h-index-of-publications-6fd52e381fee
+# Expert algorithm derived from wiki https://en.wikipedia.org/wiki/H-index
+def operator_H(citations):
+    
+    citations = np.array(citations)
+    n         = citations.shape[0]
+    array     = np.arange(1, n+1)
+    
+    # reverse sorting
+    citations = np.sort(citations)[::-1]
+    # print(citations)
+
+    # intersection of citations and k
+    h_idx = np.max(np.minimum(citations, array))
+    # print(np.minimum(citations, array))
+    return h_idx
+
