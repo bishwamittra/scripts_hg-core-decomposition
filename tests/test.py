@@ -95,7 +95,17 @@ core_compared = hgDecompose.core
 # len
 assert len(core_base) == len(core_compared), "Two returned cores do not have same length: " + str(len(core_base)) + " != " + str(len(core_compared))
 
-# core_base contains in core_compared
+# print all discrepencies
+# for v in core_base:
+#     if (v not in core_compared):
+#         print(str(v) + " is not in core_compared")
+#     if (core_base[v] != core_compared[v]):
+#         print(str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v]))
+
+# k = 24
+# from tests.verify_kcore import verify_subgraph
+# verify_subgraph(H,threshold= k, cores = core_compared)
+
 for v in core_base:
     assert v in core_compared, str(v) + " is not in core_compared"
     assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
@@ -106,4 +116,3 @@ for v in core_compared:
     assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
 
 print("\nAll tests passed")
-

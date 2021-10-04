@@ -18,7 +18,7 @@ class Hypergraph:
         self.init_nbrsize = {} # initial nbrhood sizes. can be precomputed.
         self.init_nbr = {}
         self.init_eids = {}
-        if _edgedict is None:  # Returns an empty Hypergraph
+        if _edgedict is None or len(_edgedict)==0:  # Returns an empty Hypergraph
             return
 
         self.i = 0
@@ -67,7 +67,7 @@ class Hypergraph:
             if len_neighbors_v not in _bucket:
                 _bucket[len_neighbors_v] = set()
             _bucket[len_neighbors_v].add(v)
-
+        # print('---- ',self.glb, self.gub)
         for k in range(self.glb, self.gub+1):
             while len(_bucket.get(k, [])) != 0:
                 v = _bucket[k].pop()
@@ -126,6 +126,11 @@ class Hypergraph:
         """ returns: iterator """
         for e_id in self.e_indices.keys():
             yield self.get_edge_byindex(e_id)
+
+    def edge_eid_iterator(self):
+        """ returns: iterator """
+        for e_id in self.e_indices.keys():
+            yield (e_id, self.get_edge_byindex(e_id))
 
     def node_iterator(self):
         """ returns: iterator """

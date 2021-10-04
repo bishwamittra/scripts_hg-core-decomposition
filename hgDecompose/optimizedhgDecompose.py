@@ -4,6 +4,38 @@ from hgDecompose.Hypergraph import Hypergraph
 from copy import deepcopy
 from multiprocessing import Pool
 from hgDecompose.utils import operator_H
+from tests.verify_kcore import *
+
+def core_correct(H, u, core_u, core_dict):
+    """ 
+    Verify if the integer core_u (core(u)) and its sub-neighbourhood S_u = {j \in nbr(u) core(j) >= core(u)} satisfies coreness property.
+    that is:    " The induced subhyp H[S_u] has at least core(u) vertices. "
+    If it satisties return (True, core_u) 
+    If it doesn't, return (False, a correct integer c') 
+        where c' < core_u is an integer and S'_u = {j \in nbr(u) core(j) >= c'} such that H[S'_u] satisfies coreness property.
+    """
+    nbrhood_u_plus = set() # Contains the union of incident_edge(u) such that every v \in e \in nbr_u_plus has core(v) >= core(u).
+    # gt_coreu = [core_dict[v] for v in H.init_nbr[u] if core_dict[v]>= core_u]
+    
+    for e_id in H.inc_dict[u]:
+        edge = H.get_edge_byindex(e_id)
+        flag = True
+        for v in edge:
+            if u!=v:
+                if core_dict[v] < core_u:
+                    flag = False
+                    break
+
+        if flag:
+            nbrhood_u_plus = nbrhood_u_plus.union(edge)
+            nbrhood_u_plus.remove(u)
+
+    if len(nbrhood_u_plus) >= core_u: # union of incident_edge(u) such that ... has at least core_u members. 
+        # u locally satisfies coreness property, and the set nbr_u_plus certifies that. 
+        return (True, core_u)
+    else:
+        core_u = core_u - 1
+        return (False, core_correct(H, u, core_u, core_dict)[1])
 
 class HGDecompose():
     def __init__(self):
@@ -29,12 +61,39 @@ class HGDecompose():
         pass
 
 
+    def core_correct(H, u, core_u, core_dict):
+        """ 
+        Verify if core_u locally satisfies the property that the induced sub_neighborhood of u has at least u vertices. 
+        If true returns core_u, If False, returns the correctd core_value.
+        """
+        nbrhood_u_plus = set() # Contains the union of e \in incident_edge(u) such that every v \in e has core(v) >= core(u).
+        
+        for e_id in H.inc_dict[u]:
+            edge = H.get_edge_byindex(e_id)
+            flag = True
+            for v in edge: 
+                if u!=v:
+                    if core_dict[v] < core_u: # If some vertex has core value < core_u ignore the whole hyperedge.
+                        flag = False
+                        break
+
+            if flag:
+                nbrhood_u_plus = nbrhood_u_plus.union(edge)
+                nbrhood_u_plus.remove(u)
+
+        if len(nbrhood_u_plus) >= core_u: # union of incident_edge(u) such that ... has at least core_u members. 
+            # core_u locally satisfies coreness property, and the set nbr_u_plus certifies that. 
+            return (True, core_u)
+        else:
+            # Does not locally satisfy the coreness property, decrease it by 1 and check if core_u - 1 satisfies it.
+            core_u = core_u - 1
+            return (False, core_correct(H, u, core_u, core_dict)[1])
 
     def local_core(self, H, verbose = True):
+        if verbose:
+            print('tau: ', H.get_M())
         start_execution_time = time()
         num_nodes = 0
-        
-
         # Init
         start_init_time = time()
         for node in H.node_iterator():
@@ -48,12 +107,33 @@ class HGDecompose():
 
         # Main loop
         start_loop_time = time()
-        tau = H.get_M()
-        for k in (1, tau + 1):
+        tau = int(math.ceil(math.log2(H.get_M())))
+        # tau = 4
+        print('tau: ',tau)
+
+        k = 1
+        # for k in range(1, tau + 1):
+        iter_end = k + tau
+        while True:
+            print("Iteration: ", k,'/',iter_end)
+            if (k>iter_end):
+                break
             for node in H.node_iterator():
-                self.core[node] =  operator_H([self.core[j] for j in H.get_init_nbr(node)])     
+                H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
+                if H_value <= self.core[node]:
+                    self.core[node] = H_value
                 if(verbose):
-                    print("k:", k, "node:", node)
+                    print("k:", k, "node:", node, "c[]=",self.core[node])
+            
+            for node in H.node_iterator():
+                prev_core = self.core[node]
+                local_sat, self.core[node] = core_correct(H, node, self.core[node], self.core)
+                if local_sat is False:
+                    iter_end = k + tau
+                    if verbose:
+                        print(node, ' previous_core: ', prev_core,' now: ',self.core[node])
+            k+=1
+
         self.loop_time = time() - start_loop_time
 
         # if(verbose):
@@ -1134,5 +1214,4 @@ class HGDecompose():
         if(verbose):
             print("\n\nOutput")
             print(self.core)
-
 
