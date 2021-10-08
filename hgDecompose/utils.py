@@ -1,5 +1,9 @@
+from numpy.core.fromnumeric import mean
 import pandas as pd
 from hgDecompose.Hypergraph import Hypergraph
+import random
+import heapq
+
 
 def strong_subgraph(H, vertex_set):
     import sys
@@ -334,6 +338,40 @@ def get_nbr_stats(H):
 
 import numpy as np
 
+
+def quickselect_median(l, pivot_fn=random.choice):
+    if len(l) % 2 == 1:
+        return quickselect(l, len(l) // 2, pivot_fn)
+    else:
+        return int(0.5 * (quickselect(l, len(l) / 2 - 1, pivot_fn) +
+                    quickselect(l, len(l) / 2, pivot_fn)))
+
+def quickselect(l, k, pivot_fn):
+    """
+    Select the kth element in l (0 based)
+    :param l: List of numerics
+    :param k: Index
+    :param pivot_fn: Function to choose a pivot, defaults to random.choice
+    :return: The kth element of l
+    """
+    if len(l) == 1:
+        assert k == 0
+        return l[0]
+
+    pivot = pivot_fn(l)
+
+    lows = [el for el in l if el < pivot]
+    highs = [el for el in l if el > pivot]
+    pivots = [el for el in l if el == pivot]
+
+    if k < len(lows):
+        return quickselect(lows, k, pivot_fn)
+    elif k < len(lows) + len(pivots):
+        # We got lucky and guessed the median
+        return pivots[0]
+    else:
+        return quickselect(highs, k - len(lows) - len(pivots), pivot_fn)
+
 # https://towardsdatascience.com/fastest-way-to-calculate-h-index-of-publications-6fd52e381fee
 # Expert algorithm derived from wiki https://en.wikipedia.org/wiki/H-index
 def operator_H(citations):
@@ -347,7 +385,63 @@ def operator_H(citations):
     # print(citations)
 
     # intersection of citations and k
-    h_idx = np.max(np.minimum(citations, array))
+    h_idx = np.max(np.minimum(citations, array)) # inside np.minimum is element-wise
     # print(np.minimum(citations, array))
     return h_idx
+
+
+
+def operator_H_new(citations):
+    len_citations = len(citations)
+    s = [0 for _ in range(len_citations + 1)]
+    for i in range(len_citations):
+        s[min(len_citations, citations[i])] += 1
+    # the i-th index in s  is the count of i's (or the smallest between i and len_citations) in citations
+
+    # print(s)
+    sum = 0
+    for i in range(len_citations - 1, -1, -1):
+        sum += s[i]
+        if(sum >= i):
+            return i
+        
+    return 0
+
+
+def operator_H_quicksort(citations):
+        
+    len_citations = len(citations)
+    median = quickselect_median(citations)
+    print(citations, median)
+    if(len_citations % 2 == 1):
+        if(median == (len_citations - 1) / 2):
+            return median
+        elif(median > (len_citations - 1) / 2):
+            return operator_H_new(citations[:median])
+        elif(median < (len_citations - 1) / 2):
+            return operator_H_new(citations[median:])
+    else:
+        # When len is even, we may not identify median correctly. median([1, 2]) = 1 but median([1,1,2,2]) = 1 raises error 
+        if(median == len_citations / 2):
+            return median
+        elif(median > len_citations / 2):
+            return operator_H_new(citations[:median])
+        elif(median < len_citations / 2):
+            return operator_H_new(citations[median:])
+
+
+def operator_H_priority_queue(citations):
+
+    len_citations = len(citations)
+    citations = [-1 * citation for citation in citations] # value is negated to implement max-heap
+    heapq.heapify(citations) # O(n)
+
+    h = 0
+    for i in range(1, len_citations + 1):
+        if(-1 * heapq.heappop(citations) >= i):
+            h = i
+        else:
+            break
+    return h
+
 
