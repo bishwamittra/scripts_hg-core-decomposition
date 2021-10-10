@@ -7,7 +7,7 @@
 # from hgDecompose.utils import get_hg_hnx
 # from hgDecompose.newhgDecompose import HGDecompose
 from hgDecompose.optimizedhgDecompose import HGDecompose
-from hgDecompose.utils import get_hg
+from hgDecompose.utils import get_hg, memory_usage_psutil
 import argparse
 import pandas as pd
 import os
@@ -88,6 +88,8 @@ for iteration in range(args.iterations):
     entry['outerloop time'] = hgDecompose.loop_time
     entry['total iteration'] = hgDecompose.total_iteration
     entry['inner iteration'] = hgDecompose.inner_iteration
+    if(True):
+        entry['memory taken'] = memory_usage_psutil()
     # print(entry)
     result = pd.DataFrame()
     result = result.append(entry, ignore_index=True)
@@ -101,3 +103,8 @@ for iteration in range(args.iterations):
     os.system("mkdir -p data/output")
     result.to_csv('data/output/result.csv', header=False,
                             index=False, mode='a')
+
+
+
+    # print(memory_usage_psutil())
+    # print(memory_usage_psutil())

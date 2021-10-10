@@ -1,11 +1,36 @@
-#Load its magic function
-%load_ext memory_profiler
-from memory_profiler import profile
+def memory_usage_psutil():
+    # return the memory usage in MB
+    import psutil, os
+    process = psutil.Process(os.getpid())
+    mem = process.memory_info().rss / float(2 ** 20)
+    return mem
 
-def addition():
-    a = [1] * (10 ** 1)
-    b = [2] * (3 * 10 ** 2)
-    sum = a+b
-    return sum
-%memit addition()
-# print(addition())
+print(memory_usage_psutil())
+
+def another_func():
+    """Undecorated function that allocates memory"""
+    c = [1] * (10 ** 6)
+    d = [1] * (10 ** 7)
+    return c, d
+
+if __name__ == '__main__':
+    another_func()
+
+
+
+
+# import os, psutil
+# process = psutil.Process(os.getpid())
+
+# def another_func():
+#     """Undecorated function that allocates memory"""
+#     c = [1] * (10 ** 6)
+#     d = [1] * (10 ** 7)
+#     return c, d
+
+# if __name__ == '__main__':
+#     another_func()
+
+
+
+# print(process.memory_info().rss)
