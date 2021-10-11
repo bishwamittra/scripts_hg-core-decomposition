@@ -24,7 +24,7 @@ parser.add_argument("-s", "--param_s", help="parameter for improve2_nbr", defaul
 parser.add_argument("--iterations", help="number of iterations", default=1, type=int)
 parser.add_argument("-nt", "--nthreads", help="number of threads for improve3_nbr", default=4, type=int)
 parser.add_argument("--sir", action='store_true')
-
+parser.add_argument("-p", "--prob", help="parameter for Probability", default= 0.5, type=float)
 
 args = parser.parse_args()
 
@@ -36,7 +36,7 @@ assert input_H is not None
 
 
 if(args.sir):
-    propagate(input_H, 'MP', p = 0.8, verbose=args.verbose)
+    propagate(input_H, 'JU', p = float(args.prob), verbose=args.verbose)
     quit()
 
 
@@ -95,6 +95,7 @@ for iteration in range(args.iterations):
     entry['outerloop time'] = hgDecompose.loop_time
     entry['total iteration'] = hgDecompose.total_iteration
     entry['inner iteration'] = hgDecompose.inner_iteration
+    entry['core_correction time'] = hgDecompose.core_correct_time
     if(True):
         entry['memory taken'] = memory_usage_psutil()
     # print(entry)

@@ -1,17 +1,17 @@
 import random
 
 
-def propagate(H, starting_vertex, p = 0.5, verbose=True):
+def propagate(H, starting_vertex, p = 0.5, num_iterations = 10, verbose=True):
     """
     """
-
+    print(p)
     random.seed(10)
     suscepted = H.nodes()
     suscepted.remove(starting_vertex)
     infected = [starting_vertex]
     recovered = []
 
-    for i in range(10):
+    for i in range(num_iterations):
         if(verbose):
             print('\n\n\nIteration:', i)
             print("infected:", infected)
@@ -32,7 +32,7 @@ def propagate(H, starting_vertex, p = 0.5, verbose=True):
                 print("\nPorpagating for", v)
             for u in H.neighbors(v):
                 if(u in suscepted):
-                    if(random.random() > 0.55):
+                    if(random.random() <= p):
                         if(verbose):
                             print(v, "->", u)
                         new_infected.append(u)
@@ -40,9 +40,9 @@ def propagate(H, starting_vertex, p = 0.5, verbose=True):
                     else:
                         if(verbose):
                             print(v, "->", u, "not propagated")
-                else:
-                    if(verbose):
-                        print(u, "is already either infected or recovered")
+                # else:
+                #     if(verbose):
+                #         print(u, "is already either infected or recovered")
             new_recovered.append(v)
 
 
