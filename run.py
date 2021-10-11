@@ -8,6 +8,7 @@
 # from hgDecompose.newhgDecompose import HGDecompose
 from hgDecompose.optimizedhgDecompose import HGDecompose
 from hgDecompose.utils import get_hg, memory_usage_psutil
+from hgDecompose.influence_propagation import propagate
 import argparse
 import pandas as pd
 import os
@@ -22,6 +23,7 @@ parser.add_argument("-v", "--verbose", action='store_true')
 parser.add_argument("-s", "--param_s", help="parameter for improve2_nbr", default=1, type=int)
 parser.add_argument("--iterations", help="number of iterations", default=1, type=int)
 parser.add_argument("-nt", "--nthreads", help="number of threads for improve3_nbr", default=4, type=int)
+parser.add_argument("--sir", action='store_true')
 
 
 args = parser.parse_args()
@@ -31,6 +33,11 @@ args = parser.parse_args()
 input_H = get_hg(args.dataset)
 print("HG construction done!")
 assert input_H is not None
+
+
+if(args.sir):
+    propagate(input_H, 'MP', p = 0.8, verbose=args.verbose)
+    quit()
 
 
 for iteration in range(args.iterations):
