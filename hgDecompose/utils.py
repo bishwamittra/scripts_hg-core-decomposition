@@ -1,3 +1,4 @@
+# from hgDecompose.optimizedhgDecompose import HGDecompose
 from numpy.core.fromnumeric import mean
 import pandas as pd
 from hgDecompose.Hypergraph import Hypergraph
@@ -230,6 +231,12 @@ def get_hg(dataset):
 
     return H
 
+def writeHypergraph(edge_dict, out_file):
+    with open(out_file,'w') as wf:
+        for edge in edge_dict.values():
+            edge_str = ",".join([str(node) for node in edge])
+            wf.write(edge_str+"\n")
+
 def get_N(H):
     """ Return num of vertices """
     return len(H.nodes)
@@ -389,7 +396,20 @@ def operator_H(citations):
     # print(np.minimum(citations, array))
     return h_idx
 
+def par_operator_H(args):
+    node, citations = args
+    citations = np.array(citations)
+    n         = citations.shape[0]
+    array     = np.arange(1, n+1)
+    
+    # reverse sorting
+    citations = np.sort(citations)[::-1]
+    # print(citations)
 
+    # intersection of citations and k
+    h_idx = np.max(np.minimum(citations, array)) # inside np.minimum is element-wise
+    # print(np.minimum(citations, array))
+    return (node, h_idx)
 
 def operator_H_new(citations):
     len_citations = len(citations)

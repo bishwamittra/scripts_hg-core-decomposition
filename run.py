@@ -133,6 +133,9 @@ for iteration in range(args.iterations):
     elif(args.algo == "local_core"):
         hgDecompose.local_core(H, verbose=args.verbose)
 
+    elif(args.algo == "par_local_core"):
+        hgDecompose.par_local_core(H, verbose=args.verbose)
+
     else:
         raise RuntimeError(args.algo + " is not defined or implemented yet")
 

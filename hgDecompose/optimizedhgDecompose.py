@@ -3,7 +3,7 @@ import math
 from hgDecompose.Hypergraph import Hypergraph
 from copy import deepcopy
 from multiprocessing import Pool
-from hgDecompose.utils import operator_H
+from hgDecompose.utils import operator_H, par_operator_H
 # from tests.verify_kcore import *
 
 # def core_correct(H, u, core_u, core_dict):
@@ -80,10 +80,12 @@ class HGDecompose():
                         break
 
             if flag:
+                start_nbr_time = time()
                 nbrhood_u_plus = nbrhood_u_plus.union(edge)
                 nbrhood_u_plus.remove(u)
+                self.neighborhood_call_time += start_nbr_time
 
-        self.subgraph_time = time() - start_subgraph_time 
+        self.subgraph_time += (time() - start_subgraph_time)
         if len(nbrhood_u_plus) >= core_u: # union of incident_edge(u) such that ... has at least core_u members. 
             # core_u locally satisfies coreness property, and the set nbr_u_plus certifies that. 
             return (True, core_u)
@@ -128,8 +130,7 @@ class HGDecompose():
             start_inner_time = time()
             for node in H.node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
-                if H_value <= self.core[node]:
-                    self.core[node] = H_value
+                self.core[node] = min(H_value, self.core[node])
             self.inner_iteration = time() - start_inner_time
                 # if(verbose):
                 #     print("k:", k, "node:", node, "c[]=",self.core[node])
@@ -154,6 +155,81 @@ class HGDecompose():
         #     print(self.core)
         
 
+        self.execution_time = time() - start_execution_time
+
+    def par_core_correct(self, args):
+        """ 
+        Verify if core_u locally satisfies the property that the induced sub_neighborhood of u has at least u vertices. 
+        If true returns core_u, If False, returns the correctd core_value.
+        """
+        H, u, core_u, core_dict = args
+        nbrhood_u_plus = set() # Contains the union of e \in incident_edge(u) such that every v \in e has core(v) >= core(u).
+        
+        # start_subgraph_time = time()
+        for e_id in H.inc_dict[u]:
+            edge = H.get_edge_byindex(e_id)
+            flag = True
+            for v in edge: 
+                if u!=v:
+                    if core_dict[v] < core_u: # If some vertex has core value < core_u ignore the whole hyperedge.
+                        flag = False
+                        break
+
+            if flag:
+                nbrhood_u_plus = nbrhood_u_plus.union(edge)
+                nbrhood_u_plus.remove(u)
+
+        # self.subgraph_time = time() - start_subgraph_time 
+        if len(nbrhood_u_plus) >= core_u: # union of incident_edge(u) such that ... has at least core_u members. 
+            # core_u locally satisfies coreness property, and the set nbr_u_plus certifies that. 
+            return (u, True, core_u)
+        else:
+            # Does not locally satisfy the coreness property, decrease it by 1 and check if core_u - 1 satisfies it.
+            core_u = core_u - 1
+            return (u, False, self.core_correct(H, u, core_u, core_dict)[1])
+
+    def par_local_core(self, H, num_threads = 4, verbose = True):
+        start_execution_time = time()
+        # Init
+        start_init_time = time()
+        for node in H.node_iterator():
+            len_neighbors = H.get_init_nbrlen(node)
+            self.core[node] = len_neighbors
+            # num_nodes += 1
+        self.init_time = time() - start_init_time  
+        
+        k = 0
+        start_loop_time = time()
+        while True:
+            if (verbose):
+                print("Iteration: ", k)
+            flag = True
+
+            start_inner_time = time()
+            with Pool(num_threads) as p:
+                return_values = p.map(par_operator_H, [ (node, [self.core[j] for j in H.get_init_nbr(node)]) for node in H.node_iterator()])
+
+            # Retrieving return values
+            for node, val in return_values:
+                H_value = val
+                if H_value <= self.core[node]:
+                    self.core[node] = H_value
+            self.inner_iteration = time() - start_inner_time
+
+            start_core_correct_time = time()
+            with Pool(num_threads) as p:
+                return_values = p.map(self.par_core_correct, [ (H, node, self.core[node], self.core) for node in H.node_iterator()])
+            # Retrieving return values
+            for node, local_sat, val in return_values:
+                self.core[node] = val
+                if local_sat is False:
+                    flag = False
+
+            self.core_correct_time = time() - start_core_correct_time
+            k+=1
+            if flag:
+                break
+        self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
 
     def naiveNBR(self, H, verbose = True):
