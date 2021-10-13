@@ -8,9 +8,10 @@
 # from hgDecompose.newhgDecompose import HGDecompose
 from hgDecompose.optimizedhgDecompose import HGDecompose
 from hgDecompose.utils import get_hg, memory_usage_psutil
-from hgDecompose.influence_propagation import propagate
+from hgDecompose.influence_propagation import propagate_for_all_vertices
 import argparse
 import pandas as pd
+import pickle
 import os
 from copy import deepcopy
 
@@ -28,6 +29,64 @@ parser.add_argument("-p", "--prob", help="parameter for Probability", default= 0
 
 args = parser.parse_args()
 
+
+# Pandemic propagation
+if(args.sir):
+
+    input_H = get_hg(args.dataset)
+
+    H = deepcopy(input_H)
+    assert H is not None
+
+    # Loading/saving to file
+    os.system("mkdir -p tests/tmp")
+    fname = "tests/tmp/" + args.dataset + "_" + args.algo + ".pkl"
+    if(not os.path.isfile(fname)):
+        hgDecompose = HGDecompose()
+        if(args.algo == "naive_nbr"):
+            hgDecompose.naiveNBR(input_H, verbose=args.verbose)
+        elif(args.algo == "naive_degree"):
+            hgDecompose.naiveDeg(input_H, verbose=args.verbose)
+        else:
+
+            raise RuntimeError(args.algo + " is not defined or implemented yet")
+
+        core_base = hgDecompose.core
+        # print(core_base)
+
+        # dump file
+        with open(fname, 'wb') as handle:
+            pickle.dump(hgDecompose, handle, protocol= 4)
+
+
+    else:
+        # print("Retrieving saved file")
+        with open(fname, 'rb') as handle:
+            hgDecompose = pickle.load(handle)
+            core_base = hgDecompose.core
+    
+    # print(core_base)
+    entry = {}
+    entry['dataset'] = args.dataset
+    entry['p'] = float(args.prob)
+    entry['algo'] = args.algo
+    entry['result'] = propagate_for_all_vertices(H, core_base, p = float(args.prob), verbose=args.verbose)
+
+    result = pd.DataFrame()
+    result = result.append(entry, ignore_index=True)
+    if(args.verbose): 
+        print(entry)
+        print("\n")
+        print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+    os.system("mkdir -p data/output")
+    result.to_csv('data/output/propagation_result.csv', header=False,
+                            index=False, mode='a')
+
+
+
+    quit()
+
 # hyper-graph construction
 # H = get_hg_hnx(args.dataset)
 input_H = get_hg(args.dataset)
@@ -35,9 +94,7 @@ print("HG construction done!")
 assert input_H is not None
 
 
-if(args.sir):
-    propagate(input_H, 'JU', p = float(args.prob), verbose=args.verbose)
-    quit()
+
 
 
 for iteration in range(args.iterations):

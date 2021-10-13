@@ -1,10 +1,23 @@
 import random
+import numpy as np
 
+
+def propagate_for_all_vertices(H, core, p = 0.5, num_iterations = 10, verbose=True):
+
+    result = {} # Entry is a core number 
+    # value is a list of percentages of the infected population for all vertices with the same core number
+    for key in core:
+        if(core[key] not in result):
+            result[core[key]] = [propagate(H, starting_vertex=key, p = p, num_iterations = num_iterations, verbose = verbose)]
+        else:
+            result[core[key]].append(propagate(H, starting_vertex=key, p = p, num_iterations = num_iterations, verbose = verbose))
+
+    return result
 
 def propagate(H, starting_vertex, p = 0.5, num_iterations = 10, verbose=True):
     """
     """
-    print(p)
+    
     random.seed(10)
     suscepted = H.nodes()
     suscepted.remove(starting_vertex)
@@ -50,4 +63,5 @@ def propagate(H, starting_vertex, p = 0.5, num_iterations = 10, verbose=True):
         recovered += new_recovered
         for v in new_recovered:
             infected.remove(v)
-        
+    
+    return 1 - float(len(suscepted) / H.get_N())
