@@ -18,9 +18,46 @@ parser.add_argument("-a", "--algo", type=str, default="naive_nbr")
 parser.add_argument("-v", "--verbose", action='store_true')
 parser.add_argument("-s", "--param_s", help="parameter for improve2_nbr", default=1, type=int)
 parser.add_argument("-nt", "--nthreads", help="number of threads for improve3_nbr", default=4, type=int)
-
+parser.add_argument("--rand", "--randomtest", help="Number of Random Hypergraph to test", default=0, type=int)
 
 args = parser.parse_args()
+
+if (args.rand>0):
+    """ 
+    Here we want to generate a large number of 
+    small-sized random hypergraph and test correctness on those hypergraphs
+    => Good for generating illustrative example for paper in order to make a point.
+    """
+    from hgDecompose.utils import get_random_hg
+    import random
+    N = int(args.rand)
+    for i  in range(0, N):
+        seed = 544621
+        # seed = random.randint(0, 1000000)
+        print(i,' seed: ',seed)
+        Hg = get_random_hg(n = 5, m = 3, edge_size_ub = 3, seed = seed)
+        print([e for e in Hg.edge_iterator()])
+        hgDecompose = HGDecompose()
+        hgDecompose.wrong_local_core(Hg, verbose=args.verbose)
+        core_compared = hgDecompose.core
+
+        hgDecompose.core = {}
+        hgDecompose.naiveNBR(Hg, verbose=args.verbose)
+        core_base = hgDecompose.core
+        
+        print(core_base)
+        print(core_compared)
+        for v in core_base:
+            assert v in core_compared, str(v) + " is not in core_compared"
+            assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
+
+        # core_compared contains in core_base
+        for v in core_compared:
+            assert v in core_base, str(v) + " is not in core_base"
+            assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
+
+        print("\nAll tests passed")
+    sys.exit(0)
 
 # hyper-graph construction
 # H = get_hg_hnx(args.dataset)
@@ -81,8 +118,17 @@ elif (args.algo == 'par_improved3_nbr'):
     assert args.param_s > 0 # Is this assertion valid?
     hgDecompose.parallel_improved3NBR(H, s=args.param_s, num_threads = args.nthreads, verbose=args.verbose)
 
+# elif(args.algo == "local_core"):
+#     hgDecompose.local_core(H, verbose=args.verbose)
+
 elif(args.algo == "local_core"):
-    hgDecompose.local_core(H, verbose=args.verbose)
+    hgDecompose.local_core(H, verbose=args.verbose, bst = False)
+
+elif(args.algo == "bst_local_core"):
+    hgDecompose.local_core(H, verbose=args.verbose, bst = True)
+
+elif(args.algo == "wlocal_core"):
+    hgDecompose.wrong_local_core(H, verbose=args.verbose)
 
 elif(args.algo == "par_local_core"):
     hgDecompose.par_local_core(H, verbose=args.verbose)

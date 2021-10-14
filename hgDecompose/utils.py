@@ -231,6 +231,27 @@ def get_hg(dataset):
 
     return H
 
+def get_random_hg(n = 10, m = 5, edge_size_ub = None, seed = 1):
+    """ 
+    Returns a random hypergraph with n vertices and m edges. 
+    Generate V = {1,2,..,n} 
+    Generate E = Take m randomly chosen subsets of V.
+    If edge_size_ub is not None, assume every hyperedge can have at most edge_size_ub vertices in it.
+    """
+    random.seed(seed)
+    V = set(range(1, n+1))
+    Edict = {}
+    while m:
+        if edge_size_ub is None:
+            edge_sz = random.randint(2,n) # 2 because we do not want singletons
+        else:
+            edge_sz = random.randint(2, edge_size_ub) # 2 because we do not want singletons
+        
+        e = random.sample(V, edge_sz)
+        Edict[m] = tuple([str(v) for v in sorted(list(e))])
+        m = m-1
+    return Hypergraph(Edict)
+
 def writeHypergraph(edge_dict, out_file):
     with open(out_file,'w') as wf:
         for edge in edge_dict.values():

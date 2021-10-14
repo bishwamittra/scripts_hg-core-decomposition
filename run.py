@@ -131,7 +131,10 @@ for iteration in range(args.iterations):
         hgDecompose.parallel_improved3NBR(H, s=args.param_s, num_threads = args.nthreads, verbose=args.verbose)
     
     elif(args.algo == "local_core"):
-        hgDecompose.local_core(H, verbose=args.verbose)
+        hgDecompose.local_core(H, verbose=args.verbose, bst = False)
+
+    elif(args.algo == "bst_local_core"):
+        hgDecompose.local_core(H, verbose=args.verbose, bst = True)
 
     elif(args.algo == "par_local_core"):
         hgDecompose.par_local_core(H, verbose=args.verbose)
