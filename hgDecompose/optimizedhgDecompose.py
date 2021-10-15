@@ -666,6 +666,7 @@ class HGDecompose():
 
     def improvedNBR_simplified(self, H, verbose=True):
         # print(""" Bishwa simplified the correct version (improvedNBR()) by optimizing if-else conditions .  """)
+        # This version also adopts Arijits simplification to Bishwa's simplification.
         start_execution_time = time()
         bucket = {}
         lb1 = H.glb
@@ -705,7 +706,9 @@ class HGDecompose():
                 if (verbose):
                     print("k:", k, "node:", v, ' setlb[v]: ',setlb[v])
                 len_nbr_v = H.get_number_of_nbrs(v)
-                if setlb[v] and len_nbr_v >= k:
+                # if setlb[v] and len_nbr_v >= k:
+                if setlb[v]:
+                    len_nbr_v = max(len_nbr_v,k)
                     if len_nbr_v not in bucket:
                         bucket[len_nbr_v] = set()
                     bucket[len_nbr_v].add(v)
@@ -716,7 +719,7 @@ class HGDecompose():
                 else:
                     # print('assigning core: ',v)
                     self.core[v] = k
-                    setlb[v] = True
+                    # setlb[v] = True
 
                     nbr_v = H.neighbors(v)
                     if (verbose):
