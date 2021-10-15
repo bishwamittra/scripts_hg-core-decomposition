@@ -19,6 +19,7 @@ class Hypergraph:
         self.init_nbrsize = {} # initial nbrhood sizes. can be precomputed.
         self.init_nbr = {}
         self.init_eids = {}
+        self.init_nodes = []
         if _edgedict is None or len(_edgedict)==0:  # Returns an empty Hypergraph
             return
 
@@ -32,6 +33,7 @@ class Hypergraph:
                 self.e_nodes.append(v)
                 if v not in self.inc_dict:
                     self.inc_dict[v] = set()  # create incident edge entry for v
+                    self.init_nodes.append(v)
                 self.inc_dict[v].add(e_id)  # incident edge update
                 self.degree_dict[v] = self.degree_dict.get(v, 0) + 1  # degree update
                 nbr_v = self.init_nbr.get(v, set()).union(e)
@@ -40,8 +42,8 @@ class Hypergraph:
                 self.init_nbr[v] = nbr_v  # neighbourbood set update
             self.i += _len
 
+        self.init_nodes = sorted(self.init_nodes)
         
-
         # Computing global upper and lower bounds
         self.glb = math.inf
         self.gub = -math.inf
@@ -132,6 +134,14 @@ class Hypergraph:
         """ returns: iterator """
         for e_id in self.e_indices.keys():
             yield (e_id, self.get_edge_byindex(e_id))
+
+    def init_node_iterator(self):
+        """ 
+        Returns: iterator of initial nodes. 
+        Faster than node_iterator() and deterministic.
+        """
+        for v in self.init_nodes:
+            yield v
 
     def node_iterator(self):
         """ returns: iterator """

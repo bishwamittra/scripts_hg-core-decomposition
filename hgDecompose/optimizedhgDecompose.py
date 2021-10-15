@@ -57,6 +57,7 @@ class HGDecompose():
         self.inner_iteration = 0
         self.total_iteration = 0
         self.core_correct_time = 0
+        self.h_index_time = 0
 
     def preprocess(self):
         pass
@@ -94,92 +95,55 @@ class HGDecompose():
                 h_plus = mid - 1
             return self.bst_core_correct(H, u, h_minus, h_plus, core_u, core_dict)
 
+    def iterative_core_correct(self, H, u, core_u, core_dict):
+        core_u = core_u - 1
+        while not self.LLCSAT(H, u, core_u, core_dict):
+            core_u = core_u - 1
+        return core_u 
 
-    def core_correct(self, H, u, core_u, core_dict):
+    def recursive_core_correct(self, H, u, core_u, core_dict):
         """ 
         Verify if core_u locally satisfies the property that the induced sub_neighborhood of u has at least u vertices. 
         If true returns core_u, If False, returns the correctd core_value.
         """
-        nbrhood_u_plus = set() # Contains the union of e \in incident_edge(u) such that every v \in e has core(v) >= core(u).
-        
-        start_subgraph_time = time()
-        for e_id in H.inc_dict[u]:
-            edge = H.get_edge_byindex(e_id)
-            flag = True
-            for v in edge: 
-                if u!=v:
-                    if core_dict[v] < core_u: # If some vertex has core value < core_u ignore the whole hyperedge.
-                        flag = False
-                        break
-
-            if flag:
-                start_nbr_time = time()
-                nbrhood_u_plus = nbrhood_u_plus.union(edge)
-                nbrhood_u_plus.remove(u)
-                self.neighborhood_call_time += start_nbr_time
-
-        self.subgraph_time += (time() - start_subgraph_time)
-        if len(nbrhood_u_plus) >= core_u: # union of incident_edge(u) such that ... has at least core_u members. 
-            # core_u locally satisfies coreness property, and the set nbr_u_plus certifies that. 
-            return (True, core_u)
+        core_u = core_u - 1
+        if not self.LLCSAT(H, u, core_u, core_dict):
+            return self.recursive_core_correct(H, u, core_u, core_dict)
         else:
-            # Does not locally satisfy the coreness property, decrease it by 1 and check if core_u - 1 satisfies it.
-            core_u = core_u - 1
-            return (False, self.core_correct(H, u, core_u, core_dict)[1])
-
-    def local_core(self, H, verbose = True, bst = True):
-        if verbose:
-            print('tau: ', H.get_M())
-
+            return core_u
+        
+    def local_core(self, H, verbose = True):
         start_execution_time = time()
-        # num_nodes = 0
-        # Init
         start_init_time = time()
-        for node in H.node_iterator():
+        for node in H.init_node_iterator():
             len_neighbors = H.get_init_nbrlen(node)
             self.core[node] = len_neighbors
-            # num_nodes += 1
+            
         self.init_time = time() - start_init_time  
         if(verbose):
             print("Init core")
             print(self.core)
 
-        # Main loop
         start_loop_time = time()
-        # tau = int(math.ceil(math.log2(H.get_M())))
-        # tau = 4
-        # print('tau: ',tau)
-
         k = 0
-        # for k in range(1, tau + 1):
-        # iter_end = k + tau
         while True:
             if (verbose):
                 print("Iteration: ", k)
-            # if (k>iter_end):
-            #     break
+            
             flag = True
 
             start_inner_time = time()
-            for node in H.node_iterator():
+            for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
                 self.core[node] = min(H_value, self.core[node])
-            self.inner_iteration = time() - start_inner_time
-                # if(verbose):
-                #     print("k:", k, "node:", node, "c[]=",self.core[node])
+            self.h_index_time = time() - start_inner_time
+
             
             start_core_correct_time = time()
-            for node in H.node_iterator():
-                prev_core = self.core[node]               
-                if bst:
-                    self.core[node] = self.bst_core_correct(H,node, H.llb[node], self.core[node], self.core[node], self.core)
-                else:
-                    _,self.core[node] = self.core_correct(H, node, self.core[node], self.core)
-                if prev_core != self.core[node]:
-                    flag = False
-                    # iter_end = k + tau
-                    # if verbose:
-                    #     print(node, ' previous_core: ', prev_core,' now: ',self.core[node])
+            for node in H.init_node_iterator():   
+                if not self.LLCSAT(H, node, self.core[node], self.core):   
+                    flag = False  
+                    self.core[node] = self.recursive_core_correct(H, node, self.core[node], self.core)
             self.core_correct_time = time() - start_core_correct_time
             k+=1
             if flag:
@@ -192,7 +156,101 @@ class HGDecompose():
         
         self.execution_time = time() - start_execution_time
 
-    def improved_local_core(self, H, verbose = True, bst = False):
+    def bst_local_core(self, H, verbose = True):
+        if verbose:
+            print('tau: ', H.get_M())
+
+        start_execution_time = time()
+        start_init_time = time()
+        for node in H.init_node_iterator():
+            len_neighbors = H.get_init_nbrlen(node)
+            self.core[node] = len_neighbors
+            
+        self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        start_loop_time = time()
+    
+        k = 0
+        
+        while True:
+            if (verbose):
+                print("Iteration: ", k)
+            
+            flag = True
+
+            start_inner_time = time()
+            for node in H.init_node_iterator():
+                H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
+                self.core[node] = min(H_value, self.core[node])
+            self.h_index_time = time() - start_inner_time
+
+            
+            start_core_correct_time = time()
+            for node in H.init_node_iterator():
+                if not self.LLCSAT(H, node, self.core[node], self.core):   
+                    flag = False  
+                    self.core[node] = self.bst_core_correct(H,node, H.llb[node], self.core[node], self.core[node], self.core)
+                    
+            self.core_correct_time = time() - start_core_correct_time
+            k+=1
+            if flag:
+                break
+
+        self.loop_time = time() - start_loop_time
+        
+        self.execution_time = time() - start_execution_time
+
+    def iterative_local_core(self, H, verbose = True):
+
+        start_execution_time = time()
+
+        start_init_time = time()
+        for node in H.init_node_iterator():
+            len_neighbors = H.get_init_nbrlen(node)
+            self.core[node] = len_neighbors
+
+        self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        # Main loop
+        start_loop_time = time()
+        k = 0
+        while True:
+            if (verbose):
+                print("Iteration: ", k)
+
+            flag = True
+
+            start_inner_time = time()
+            for node in H.init_node_iterator():
+                H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
+                self.core[node] = min(H_value, self.core[node])
+            self.h_index_time = time() - start_inner_time
+
+            start_core_correct_time = time()
+            for node in H.init_node_iterator():
+                if not self.LLCSAT(H, node, self.core[node], self.core):   
+                    flag = False  
+                    self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+   
+            self.core_correct_time = time() - start_core_correct_time
+            k+=1
+            if flag:
+                break
+
+        self.loop_time = time() - start_loop_time
+        
+        # if(verbose):
+        #     print(self.core)
+        
+        self.execution_time = time() - start_execution_time
+
+    def improved_local_core(self, H, verbose = True):
         if verbose:
             print('tau: ', H.get_M())
 
@@ -200,7 +258,7 @@ class HGDecompose():
         # num_nodes = 0
         # Init
         start_init_time = time()
-        for node in H.node_iterator():
+        for node in H.init_node_iterator():
             len_neighbors = H.get_init_nbrlen(node)
             self.core[node] = len_neighbors
             # num_nodes += 1
@@ -219,32 +277,32 @@ class HGDecompose():
             flag = True
 
             start_inner_time = time()
-            for node in H.node_iterator():
+            for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
                 self.core[node] = min(H_value, self.core[node])
-            self.inner_iteration = time() - start_inner_time
+            self.h_index_time = time() - start_inner_time
                 # if(verbose):
                 #     print("k:", k, "node:", node, "c[]=",self.core[node])
             
             start_core_correct_time = time()
             core_corrected_bucket = set()
-            for node in H.node_iterator():
+            for node in H.init_node_iterator():
                 prev_core = self.core[node]    
                 if node not in core_corrected_bucket:           
-                    if bst:
-                        self.core[node] = self.bst_core_correct(H,node, H.llb[node], self.core[node], self.core[node], self.core)
-                    else:
-                        _,self.core[node] = self.core_correct(H, node, self.core[node], self.core)
+                    # if bst:
+                    #     self.core[node] = self.bst_core_correct(H,node, H.llb[node], self.core[node], self.core[node], self.core)
+                    # else:
+                    _,self.core[node] = self.core_correct(H, node, self.core[node], self.core)
                 if prev_core != self.core[node]:
-                    core_corrected_bucket.add(node)
+                    # core_corrected_bucket.add(node)
                     flag = False
-                    for u in H.init_nbr[node]:
-                        if self.core[u] > self.core[node] and self.core[u] <= prev_core:
-                            if bst:
-                                self.core[node] = self.bst_core_correct(H,u, H.llb[u], self.core[u], self.core[u], self.core)
-                            else:
-                                _,self.core[node] = self.core_correct(H, u, self.core[u], self.core)
-                            core_corrected_bucket.add(u)
+                    # for u in H.init_nbr[node]:
+                    #     if self.core[u] > self.core[node] and self.core[u] <= prev_core:
+                    #         # if bst:
+                    #         #     self.core[node] = self.bst_core_correct(H,u, H.llb[u], self.core[u], self.core[u], self.core)
+                    #         # else:
+                    #         _,self.core[node] = self.core_correct(H, u, self.core[u], self.core)
+                    #         core_corrected_bucket.add(u)
             self.core_correct_time = time() - start_core_correct_time
             k+=1
             if flag:
@@ -264,7 +322,7 @@ class HGDecompose():
         bucket = {}
         # Initial bucket fill-up
         start_init_time = time()
-        for node in H.node_iterator():
+        for node in H.init_node_iterator():
             len_neighbors = H.get_init_nbrlen(node)
             _node_to_num_neighbors[node] = len_neighbors
             if len_neighbors not in bucket:
@@ -496,7 +554,7 @@ class HGDecompose():
 
     #     # Initial bucket fill-up
     #     start_init_time = time()
-    #     for node in H.node_iterator():
+    #     for node in H.init_node_iterator():
     #         len_neighbors = H.get_init_nbrlen(node)
     #         lb2[node] = H.llb[node]
     #         self._node_to_num_neighbors[node] = len_neighbors
@@ -582,7 +640,7 @@ class HGDecompose():
         setlb = {}
         # Initial bucket fill-up
         start_init_time = time()
-        for node in H.node_iterator():
+        for node in H.init_node_iterator():
             # lb = max(H.llb[node],lb1)
             lb = H.llb[node]
             inverse_bucket[node] = lb
@@ -740,7 +798,7 @@ class HGDecompose():
         setlb = {}
         # Initial bucket fill-up
         start_init_time = time()
-        for node in H.node_iterator():
+        for node in H.init_node_iterator():
             # lb = max(H.llb[node],lb1)
             lb = H.llb[node]
 
@@ -853,7 +911,7 @@ class HGDecompose():
 
         start_init_time = time()
         # Initial bucket fill-up
-        # for node in H.node_iterator():
+        # for node in H.init_node_iterator():
             # len_neighbors = H.get_init_nbrlen(node)
             # llb[node] = H.precomputedlb2[node]
             # lub[node] = H.precomputedub2[node]
@@ -898,7 +956,7 @@ class HGDecompose():
             if(verbose):
                 print("Inverval [%d,%d]"%(lower, upper))
 
-            V_kmin = [u for u in H.node_iterator() if lub[u] >= lower]
+            V_kmin = [u for u in H.init_node_iterator() if lub[u] >= lower]
             if(verbose):
                 print("Vkmin: ", V_kmin)
             for u in V_kmin:
@@ -996,7 +1054,7 @@ class HGDecompose():
         if (verbose):
             print("Inverval [%d,%d]" % (lower, upper))
 
-        V_kmin = [u for u in H.node_iterator() if H.precomputedub2[u] >= lower]
+        V_kmin = [u for u in H.init_node_iterator() if H.precomputedub2[u] >= lower]
         start_subgraph_time = time()
         H_kmin = H.strong_subgraph(V_kmin)
         _local_subgraph_time += time() - start_subgraph_time
@@ -1074,8 +1132,8 @@ class HGDecompose():
         if (verbose):
             print("Inverval [%d,%d]" % (lower, upper))
 
-        # V_kmin = [u for u in H.node_iterator() if H.precomputedub2[u] >= lower]
-        V_kmin = [u for u in H_kmin.node_iterator() if (lower <= H_kmin.precomputedub2[u] <= upper)]
+        # V_kmin = [u for u in H.init_node_iterator() if H.precomputedub2[u] >= lower]
+        V_kmin = [u for u in H_kmin.init_node_iterator() if (lower <= H_kmin.precomputedub2[u] <= upper)]
 
         start_subgraph_time = time()
         # H_kmin = H.strong_subgraph(V_kmin)
@@ -1154,7 +1212,7 @@ class HGDecompose():
 
         start_init_time = time()
        
-        # for node in H.node_iterator():
+        # for node in H.init_node_iterator():
            
             # len_neighbors = H.get_init_nbrlen(node)
             
@@ -1254,7 +1312,7 @@ class HGDecompose():
 
         start_init_time = time()
         # Initial bucket fill-up
-        # for node in H.node_iterator():
+        # for node in H.init_node_iterator():
            
             # len_neighbors = H.get_init_nbrlen(node)
             
@@ -1367,7 +1425,7 @@ class HGDecompose():
         start_execution_time = time()
         # Init
         start_init_time = time()
-        for node in H.node_iterator():
+        for node in H.init_node_iterator():
             len_neighbors = H.get_init_nbrlen(node)
             self.core[node] = len_neighbors
             # num_nodes += 1
@@ -1382,7 +1440,7 @@ class HGDecompose():
 
             start_inner_time = time()
             with Pool(num_threads) as p:
-                return_values = p.map(par_operator_H, [ (node, [self.core[j] for j in H.get_init_nbr(node)]) for node in H.node_iterator()])
+                return_values = p.map(par_operator_H, [ (node, [self.core[j] for j in H.get_init_nbr(node)]) for node in H.init_node_iterator()])
 
             # Retrieving return values
             for node, val in return_values:
@@ -1393,7 +1451,7 @@ class HGDecompose():
 
             start_core_correct_time = time()
             with Pool(num_threads) as p:
-                return_values = p.map(self.par_core_correct, [ (H, node, self.core[node], self.core) for node in H.node_iterator()])
+                return_values = p.map(self.par_core_correct, [ (H, node, self.core[node], self.core) for node in H.init_node_iterator()])
             # Retrieving return values
             for node, local_sat, val in return_values:
                 self.core[node] = val
@@ -1411,7 +1469,7 @@ class HGDecompose():
         if verbose:
             print('tau: ', H.get_M())
 
-        for node in H.node_iterator():
+        for node in H.init_node_iterator():
             len_neighbors = H.get_init_nbrlen(node)
             self.core[node] = len_neighbors
         
@@ -1427,10 +1485,10 @@ class HGDecompose():
                 print("Iteration: ", k)
 
             temp = {}
-            for node in H.node_iterator():
+            for node in H.init_node_iterator():
                 temp[node] = operator_H([self.core[j] for j in H.get_init_nbr(node)])
                 
-            for node in H.node_iterator():
+            for node in H.init_node_iterator():
                 self.core[node] = temp[node]
     
             if(verbose):

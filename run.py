@@ -154,14 +154,20 @@ for iteration in range(args.iterations):
         assert args.param_s > 0 # Is this assertion valid?
         hgDecompose.parallel_improved3NBR(H, s=args.param_s, num_threads = args.nthreads, verbose=args.verbose)
     
-    elif(args.algo == "local_core"):
-        hgDecompose.local_core(H, verbose=args.verbose, bst = False)
+    elif(args.algo == "recursive_local_core"):
+        hgDecompose.local_core(H, verbose=args.verbose)
+
+    elif(args.algo == "iterative_local_core"):
+        hgDecompose.iterative_local_core(H, verbose=args.verbose)
 
     elif(args.algo == "bst_local_core"):
-        hgDecompose.local_core(H, verbose=args.verbose, bst = True)
+        hgDecompose.bst_local_core(H, verbose=args.verbose)
 
     elif(args.algo == "improved_local_core"):
         hgDecompose.improved_local_core(H, verbose=args.verbose, bst = False)
+    
+    elif(args.algo == "improved_local_core_bst"):
+        hgDecompose.improved_local_core(H, verbose=args.verbose, bst = True)
 
     elif(args.algo == "par_local_core"):
         hgDecompose.par_local_core(H, verbose=args.verbose)
@@ -186,6 +192,8 @@ for iteration in range(args.iterations):
     entry['total iteration'] = hgDecompose.total_iteration
     entry['inner iteration'] = hgDecompose.inner_iteration
     entry['core_correction time'] = hgDecompose.core_correct_time
+    entry['h_index_time'] = hgDecompose.h_index_time
+    
     if(True):
         entry['memory taken'] = memory_usage_psutil()
     # print(entry)
@@ -199,8 +207,8 @@ for iteration in range(args.iterations):
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")
-    # result.to_csv('data/output/result.csv', header=False,
-    #                         index=False, mode='a')
+    result.to_csv('data/output/result.csv', header=False,
+                            index=False, mode='a')
 
 
 
