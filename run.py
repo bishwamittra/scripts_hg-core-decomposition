@@ -89,10 +89,8 @@ if(args.sir):
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")
-    # result.to_csv('data/output/propagation_result.csv', header=False,
-                            # index=False, mode='a')
-
-
+    result.to_csv('data/output/propagation_result.csv', header=False,
+                            index=False, mode='a')
 
     quit()
 
