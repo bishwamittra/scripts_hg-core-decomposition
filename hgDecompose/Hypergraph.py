@@ -1,4 +1,5 @@
 import math
+import itertools
 
 class Hypergraph:
     """ 
@@ -445,6 +446,19 @@ class Hypergraph:
         for e_id in self.e_indices.keys():
             _tempH[e_id] = self.get_edge_byindex(e_id)
         return hnx.Hypergraph(_tempH)
+
+    def get_clique_graph(self):
+        binary_edges = set()
+        for e_id in self.e_indices.keys():
+            e = self.get_edge_byindex(e_id)
+            for x in itertools.combinations(e,2):
+                y = tuple(sorted(x))
+                if y not in binary_edges:
+                    binary_edges.add(y)
+        scenes = {}
+        for i, edge in enumerate(binary_edges):
+            scenes[i] = list(edge)
+        return Hypergraph(scenes)
 
     # def weak_subgraph(self, vertex_list):
     #     """ returns: Hypergraph object. """

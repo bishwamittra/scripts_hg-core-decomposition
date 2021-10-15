@@ -113,7 +113,6 @@ elif(args.algo == "improved_nbr_simple"):
 elif(args.algo == "naive_degree"):
     hgDecompose.naiveDeg(H, verbose=args.verbose)
 
-
 elif(args.algo == "improved2_nbr"):
     assert args.param_s > 0 # Is this assertion valid?
     hgDecompose.improved2NBR(H, s=args.param_s, verbose=args.verbose)
@@ -134,6 +133,9 @@ elif(args.algo == "local_core"):
 
 elif(args.algo == "bst_local_core"):
     hgDecompose.local_core(H, verbose=args.verbose, bst = True)
+
+elif(args.algo == "improved_local_core"):
+    hgDecompose.improved_local_core(H, verbose=args.verbose, bst = False)
 
 elif(args.algo == "wlocal_core"):
     hgDecompose.wrong_local_core(H, verbose=args.verbose)

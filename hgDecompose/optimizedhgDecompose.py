@@ -192,6 +192,71 @@ class HGDecompose():
         
         self.execution_time = time() - start_execution_time
 
+    def improved_local_core(self, H, verbose = True, bst = False):
+        if verbose:
+            print('tau: ', H.get_M())
+
+        start_execution_time = time()
+        # num_nodes = 0
+        # Init
+        start_init_time = time()
+        for node in H.node_iterator():
+            len_neighbors = H.get_init_nbrlen(node)
+            self.core[node] = len_neighbors
+            # num_nodes += 1
+        self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        # Main loop
+        start_loop_time = time()
+    
+        k = 0
+        while True:
+            if (verbose):
+                print("Iteration: ", k)
+            flag = True
+
+            start_inner_time = time()
+            for node in H.node_iterator():
+                H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
+                self.core[node] = min(H_value, self.core[node])
+            self.inner_iteration = time() - start_inner_time
+                # if(verbose):
+                #     print("k:", k, "node:", node, "c[]=",self.core[node])
+            
+            start_core_correct_time = time()
+            core_corrected_bucket = set()
+            for node in H.node_iterator():
+                prev_core = self.core[node]    
+                if node not in core_corrected_bucket:           
+                    if bst:
+                        self.core[node] = self.bst_core_correct(H,node, H.llb[node], self.core[node], self.core[node], self.core)
+                    else:
+                        _,self.core[node] = self.core_correct(H, node, self.core[node], self.core)
+                if prev_core != self.core[node]:
+                    core_corrected_bucket.add(node)
+                    flag = False
+                    for u in H.init_nbr[node]:
+                        if self.core[u] > self.core[node] and self.core[u] <= prev_core:
+                            if bst:
+                                self.core[node] = self.bst_core_correct(H,u, H.llb[u], self.core[u], self.core[u], self.core)
+                            else:
+                                _,self.core[node] = self.core_correct(H, u, self.core[u], self.core)
+                            core_corrected_bucket.add(u)
+            self.core_correct_time = time() - start_core_correct_time
+            k+=1
+            if flag:
+                break
+
+        self.loop_time = time() - start_loop_time
+        
+        # if(verbose):
+        #     print(self.core)
+        
+        self.execution_time = time() - start_execution_time
+
     def naiveNBR(self, H, verbose = True):
         start_execution_time = time()
         num_nodes = 0

@@ -1,7 +1,7 @@
 # import sys
 # sys.path.append("HyperNetX")
 # import matplotlib.pyplot as plt
-# import networkx as nx
+import networkx as nx
 # import hypernetx as hnx
 # from hgDecompose.hgDecompose import HGDecompose
 # from hgDecompose.utils import get_hg_hnx
@@ -47,6 +47,15 @@ if(args.sir):
             hgDecompose.naiveNBR(input_H, verbose=args.verbose)
         elif(args.algo == "naive_degree"):
             hgDecompose.naiveDeg(input_H, verbose=args.verbose)
+        elif(args.algo == "graph_core"):
+            G = H.get_clique_graph()
+            nx_G = nx.Graph()
+            # print("N: ",G.get_N())
+            # print("M: ",G.get_M())
+            # hgDecompose.naiveDeg(G, verbose=args.verbose)
+            for e in G.edge_iterator():
+                nx_G.add_edge(e[0],e[1])
+            hgDecompose.core = nx.core_number(nx_G)
         else:
 
             raise RuntimeError(args.algo + " is not defined or implemented yet")
@@ -80,8 +89,8 @@ if(args.sir):
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")
-    result.to_csv('data/output/propagation_result.csv', header=False,
-                            index=False, mode='a')
+    # result.to_csv('data/output/propagation_result.csv', header=False,
+                            # index=False, mode='a')
 
 
 
@@ -117,6 +126,23 @@ for iteration in range(args.iterations):
     elif(args.algo == "naive_degree"):
         hgDecompose.naiveDeg(H, verbose=args.verbose)
 
+    elif(args.algo == "graph_core"):
+        G = H.get_clique_graph()
+        nx_G = nx.Graph()
+        # print("N: ",G.get_N())
+        # print("M: ",G.get_M())
+        # hgDecompose.naiveDeg(G, verbose=args.verbose)
+        for e in G.edge_iterator():
+            nx_G.add_edge(e[0],e[1])
+        hgDecompose.core = nx.core_number(nx_G)
+
+        # hgDecompose.naiveNBR(G, verbose=args.verbose)
+        # # for core_num in sorted(hgDecompose.core.values()):
+        # #     verify_kcore.verify_subgraph(G, core_num, hgDecompose.core)
+        # # print(hgDecompose.core)
+        # # G = H.get_clique_graph()
+        # # hgDecompose.naiveDeg(G, verbose=args.verbose)
+        # print(hgDecompose.core)
 
     elif(args.algo == "improved2_nbr"):
         assert args.param_s > 0 # Is this assertion valid?
@@ -135,6 +161,9 @@ for iteration in range(args.iterations):
 
     elif(args.algo == "bst_local_core"):
         hgDecompose.local_core(H, verbose=args.verbose, bst = True)
+
+    elif(args.algo == "improved_local_core"):
+        hgDecompose.improved_local_core(H, verbose=args.verbose, bst = False)
 
     elif(args.algo == "par_local_core"):
         hgDecompose.par_local_core(H, verbose=args.verbose)
@@ -172,8 +201,8 @@ for iteration in range(args.iterations):
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")
-    result.to_csv('data/output/result.csv', header=False,
-                            index=False, mode='a')
+    # result.to_csv('data/output/result.csv', header=False,
+    #                         index=False, mode='a')
 
 
 
