@@ -9,6 +9,7 @@ import networkx as nx
 from hgDecompose.optimizedhgDecompose import HGDecompose
 from hgDecompose.utils import get_hg, memory_usage_psutil
 from hgDecompose.influence_propagation import propagate_for_all_vertices
+from hgDecompose.sis_propagation import propagateSIS_for_all_vertices
 import argparse
 import pandas as pd
 import pickle
@@ -25,7 +26,9 @@ parser.add_argument("-s", "--param_s", help="parameter for improve2_nbr", defaul
 parser.add_argument("--iterations", help="number of iterations", default=1, type=int)
 parser.add_argument("-nt", "--nthreads", help="number of threads for improve3_nbr", default=4, type=int)
 parser.add_argument("--sir", action='store_true')
+parser.add_argument("--sis", action='store_true')
 parser.add_argument("-p", "--prob", help="parameter for Probability", default= 0.5, type=float)
+parser.add_argument("-g", "--gamma", help="parameter for Probability", default= 0.01, type=float)
 
 args = parser.parse_args()
 
@@ -90,6 +93,71 @@ if(args.sir):
 
     os.system("mkdir -p data/output")
     result.to_csv('data/output/propagation_result.csv', header=False,
+                            index=False, mode='a')
+
+    quit()
+
+# Pandemic propagation
+if(args.sis):
+
+    input_H = get_hg(args.dataset)
+
+    H = deepcopy(input_H)
+    assert H is not None
+
+    # Loading/saving to file
+    os.system("mkdir -p tests/tmp")
+    fname = "tests/tmp/" + args.dataset + "_" + args.algo + ".pkl"
+    if(not os.path.isfile(fname)):
+        hgDecompose = HGDecompose()
+        if(args.algo == "naive_nbr"):
+            hgDecompose.naiveNBR(input_H, verbose=args.verbose)
+        elif(args.algo == "naive_degree"):
+            hgDecompose.naiveDeg(input_H, verbose=args.verbose)
+        elif(args.algo == "graph_core"):
+            G = H.get_clique_graph()
+            nx_G = nx.Graph()
+            # print("N: ",G.get_N())
+            # print("M: ",G.get_M())
+            # hgDecompose.naiveDeg(G, verbose=args.verbose)
+            for e in G.edge_iterator():
+                nx_G.add_edge(e[0],e[1])
+            hgDecompose.core = nx.core_number(nx_G)
+        else:
+
+            raise RuntimeError(args.algo + " is not defined or implemented yet")
+
+        core_base = hgDecompose.core
+        # print(core_base)
+
+        # dump file
+        with open(fname, 'wb') as handle:
+            pickle.dump(hgDecompose, handle, protocol= 4)
+
+
+    else:
+        # print("Retrieving saved file")
+        with open(fname, 'rb') as handle:
+            hgDecompose = pickle.load(handle)
+            core_base = hgDecompose.core
+    
+    # print(core_base)
+    entry = {}
+    entry['dataset'] = args.dataset
+    entry['p'] = float(args.prob)
+    entry["gamma"] = float(args.gamma)
+    entry['algo'] = args.algo
+    entry['result'] = propagateSIS_for_all_vertices(H, core_base, p = float(args.prob), gamma = float(args.gamma), verbose=args.verbose)
+
+    result = pd.DataFrame()
+    result = result.append(entry, ignore_index=True)
+    if(args.verbose): 
+        print(entry)
+        print("\n")
+        print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+    os.system("mkdir -p data/output")
+    result.to_csv('data/output/sis_propagation_result.csv', header=False,
                             index=False, mode='a')
 
     quit()
