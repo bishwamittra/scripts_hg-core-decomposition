@@ -8,7 +8,7 @@ import networkx as nx
 # from hgDecompose.newhgDecompose import HGDecompose
 from hgDecompose.optimizedhgDecompose import HGDecompose
 from hgDecompose.utils import get_hg, memory_usage_psutil
-from hgDecompose.influence_propagation import propagate_for_all_vertices
+from hgDecompose.influence_propagation import propagate_for_all_vertices, propagate_for_random_seeds
 from hgDecompose.sis_propagation import propagateSIS_for_all_vertices
 import argparse
 import pandas as pd
@@ -25,8 +25,9 @@ parser.add_argument("-v", "--verbose", action='store_true')
 parser.add_argument("-s", "--param_s", help="parameter for improve2_nbr", default=1, type=int)
 parser.add_argument("--iterations", help="number of iterations", default=1, type=int)
 parser.add_argument("-nt", "--nthreads", help="number of threads for improve3_nbr", default=4, type=int)
-parser.add_argument("--sir", action='store_true')
 parser.add_argument("--sis", action='store_true')
+parser.add_argument("--sir", action='store_true')
+parser.add_argument("--sir_exp2", action='store_true')
 parser.add_argument("-p", "--prob", help="parameter for Probability", default= 0.5, type=float)
 parser.add_argument("-g", "--gamma", help="parameter for Probability", default= 0.01, type=float)
 
@@ -34,7 +35,7 @@ args = parser.parse_args()
 
 
 # Pandemic propagation
-if(args.sir):
+if(args.sir or args.sir_exp2):
 
     input_H = get_hg(args.dataset)
 
@@ -82,7 +83,17 @@ if(args.sir):
     entry['dataset'] = args.dataset
     entry['p'] = float(args.prob)
     entry['algo'] = args.algo
-    entry['result'] = propagate_for_all_vertices(H, core_base, p = float(args.prob), verbose=args.verbose)
+    assert not (args.sir and args.sir_exp2)
+    if(args.sir):
+        entry['exp2'] = False
+    else:
+        entry['exp2'] = True
+    
+    if(args.sir):
+        entry['result'], entry['timestep_results'] = propagate_for_all_vertices(H, core_base, p = float(args.prob), verbose=args.verbose)
+    else:
+        entry['result'], entry['timestep_results'] = propagate_for_random_seeds(H, core_base, p = float(args.prob), verbose=args.verbose)
+    
 
     result = pd.DataFrame()
     result = result.append(entry, ignore_index=True)
