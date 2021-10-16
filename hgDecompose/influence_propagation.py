@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 
-def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100,  p = 0.5, num_iterations = 10, verbose=True):
+def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100,  p = 0.5, num_iterations = 100, verbose=True):
 
 
     
@@ -31,7 +31,7 @@ def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100, 
 
     return result, None
 
-def propagate_for_random_seeds(H, core, seed_size = 1000, p = 0.5, num_iterations = 10, verbose = False):
+def propagate_for_random_seeds(H, core, seed_size = 1000, p = 0.5, num_iterations = 100, verbose = False):
 
     # print(core)
     result = {}
@@ -60,7 +60,7 @@ def propagate(H, starting_vertex, p = 0.5, num_iterations = 10, verbose=True):
     timestep_of_infection = {}
     len_nodes = H.get_N()
     for v in H.nodes():
-        timestep_of_infection[v] = len_nodes - 1 
+        timestep_of_infection[v] = num_iterations + 1
     suscepted = H.nodes()
     suscepted.remove(starting_vertex)
     infected = [starting_vertex]

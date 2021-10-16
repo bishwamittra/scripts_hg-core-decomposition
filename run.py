@@ -28,7 +28,7 @@ parser.add_argument("-nt", "--nthreads", help="number of threads for improve3_nb
 parser.add_argument("--sis", action='store_true')
 parser.add_argument("--sir", action='store_true')
 parser.add_argument("--sir_exp2", action='store_true')
-parser.add_argument("-p", "--prob", help="parameter for Probability", default= 0.5, type=float)
+parser.add_argument("-p", "--prob", help="parameter for Probability", default= 0.3, type=float)
 parser.add_argument("-g", "--gamma", help="parameter for Probability", default= 0.01, type=float)
 
 args = parser.parse_args()
