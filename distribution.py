@@ -13,6 +13,7 @@ args = parser.parse_args()
 # algo_list = ['naive_nbr','improved_nbr_simple']
 # algo_list = ['naive_nbr']
 algo_list = ['bst_local_core']
+# algo_list = ['bst_local_core','recursive_local_core','iterative_local_core']
 # algo_list = ['recursive_local_core','bst_local_core','improved_local_core']
 # algo_list = ['recursive_local_core', 'improved_local_core','improved_local_core_bst']
 # algo_list = ['graph_core']
@@ -75,6 +76,6 @@ for i, configuration in enumerate(configurations):
               " --param_s " + str(s) +\
               " --nthreads " + str(nthreads)
         print(cmd) 
-        # os.system(cmd) 
+        os.system(cmd) 
 
 # TO DO: ignore assertion -O

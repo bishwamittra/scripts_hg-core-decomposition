@@ -138,9 +138,10 @@ elif(args.algo == "bst_local_core"):
     hgDecompose.bst_local_core(H, verbose=args.verbose)
 
 elif(args.algo == "improved_local_core"):
-    hgDecompose.improved_local_core(H, verbose=args.verbose, bst = False)
-elif(args.algo == "improved_local_core_bst"):
-    hgDecompose.improved_local_core(H, verbose=args.verbose, bst = True)
+    hgDecompose.improved_local_core(H, verbose=args.verbose)
+
+# elif(args.algo == "improved_local_core_bst"):
+#     hgDecompose.improved_local_core(H, verbose=args.verbose, bst = True)
 
 elif(args.algo == "wlocal_core"):
     hgDecompose.wrong_local_core(H, verbose=args.verbose)
