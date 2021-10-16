@@ -285,22 +285,18 @@ class HGDecompose():
             start_core_correct_time = time()
             core_corrected_bucket = set()
             for node in H.init_node_iterator():
-                prev_core = self.core[node]    
-                if node not in core_corrected_bucket:           
-                    # if bst:
-                    #     self.core[node] = self.bst_core_correct(H,node, H.llb[node], self.core[node], self.core[node], self.core)
-                    # else:
-                    _,self.core[node] = self.core_correct(H, node, self.core[node], self.core)
-                if prev_core != self.core[node]:
-                    # core_corrected_bucket.add(node)
-                    flag = False
-                    # for u in H.init_nbr[node]:
-                    #     if self.core[u] > self.core[node] and self.core[u] <= prev_core:
-                    #         # if bst:
-                    #         #     self.core[node] = self.bst_core_correct(H,u, H.llb[u], self.core[u], self.core[u], self.core)
-                    #         # else:
-                    #         _,self.core[node] = self.core_correct(H, u, self.core[u], self.core)
-                    #         core_corrected_bucket.add(u)
+                if node not in core_corrected_bucket:          
+                    if not self.LLCSAT(H, node, self.core[node], self.core):   
+                        prev_core = self.core[node] 
+                        flag = False
+                        self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                        core_corrected_bucket.add(node)
+                    
+                        for u in H.init_nbr[node]:
+                            if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
+                                # Instead of checking LLCSAT again assume they must be corrected.
+                                self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
+                                core_corrected_bucket.add(u)
             self.core_correct_time += (time() - start_core_correct_time)
             k+=1
             if flag:
