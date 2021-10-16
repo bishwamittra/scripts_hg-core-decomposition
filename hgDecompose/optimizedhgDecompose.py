@@ -278,7 +278,7 @@ class HGDecompose():
             for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
                 self.core[node] = min(H_value, self.core[node])
-            self.h_index_time = time() - start_inner_time
+            self.h_index_time += (time() - start_inner_time)
                 # if(verbose):
                 #     print("k:", k, "node:", node, "c[]=",self.core[node])
             
@@ -301,7 +301,7 @@ class HGDecompose():
                     #         # else:
                     #         _,self.core[node] = self.core_correct(H, u, self.core[u], self.core)
                     #         core_corrected_bucket.add(u)
-            self.core_correct_time = time() - start_core_correct_time
+            self.core_correct_time += (time() - start_core_correct_time)
             k+=1
             if flag:
                 break
