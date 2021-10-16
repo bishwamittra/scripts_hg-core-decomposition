@@ -2,16 +2,17 @@
 import os
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--thread", help="index of thread", default=-1, type=int)
-parser.add_argument("--max_thread", help="maximum number of thread", default=1, type=int)
+parser.add_argument("--iter", help="number of iterations", default = 5, type=int)
+parser.add_argument("--thread", help="index of thread", default = -1, type=int)
+parser.add_argument("--max_thread", help="maximum number of thread", default = 1, type=int)
 args = parser.parse_args()
 
 # ['enron', 'congress', 'contact', 'syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5']
 # algo_list = ['naive_nbr', 'improved_nbr', 'improved2_nbr', 'naive_degree']
 # algo_list = ['naive_nbr', 'improved_nbr']
 # algo_list = ['naive_nbr','improved_nbr_simple']
-algo_list = ['naive_nbr']
-# algo_list = ['bst_local_core','iterative_local_core','recursive_local_core']
+# algo_list = ['naive_nbr']
+algo_list = ['bst_local_core']
 # algo_list = ['recursive_local_core','bst_local_core','improved_local_core']
 # algo_list = ['recursive_local_core', 'improved_local_core','improved_local_core_bst']
 # algo_list = ['graph_core']
@@ -33,7 +34,7 @@ param_s_distinctvals = {'syn': 3, 'bin_1': 6, 'bin_2': 8, 'bin_4': 4,
                  'dblp': 86, 'amazon': None
                  }
 # param_s = [i+1 for i in range(10)]
-iterations = 5
+iterations = int(args.iter)
 num_divisions = 10
 
 # small exp
@@ -74,6 +75,6 @@ for i, configuration in enumerate(configurations):
               " --param_s " + str(s) +\
               " --nthreads " + str(nthreads)
         print(cmd) 
-        os.system(cmd) 
+        # os.system(cmd) 
 
 # TO DO: ignore assertion -O

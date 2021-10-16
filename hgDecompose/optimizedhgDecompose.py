@@ -82,9 +82,11 @@ class HGDecompose():
             return False
 
     def bst_core_correct(self, H, u, h_minus, h_plus, core_u, core_dict):
-        if self.LLCSAT(H, u, h_minus, core_dict) == self.LLCSAT(H, u, h_plus, core_dict) == True:
+        LLCSAT_h_min = self.LLCSAT(H, u, h_minus, core_dict)
+        LLCSAT_h_plus = self.LLCSAT(H, u, h_plus, core_dict)
+        if LLCSAT_h_min == LLCSAT_h_plus == True:
             return h_plus 
-        elif self.LLCSAT(H, u, h_minus, core_dict) == self.LLCSAT(H, u, h_plus, core_dict) == False:
+        elif LLCSAT_h_min == LLCSAT_h_plus == False:
             return h_minus - 1
         else: 
             mid = math.ceil((h_minus + h_plus)/2)
@@ -136,7 +138,7 @@ class HGDecompose():
             for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
                 self.core[node] = min(H_value, self.core[node])
-            self.h_index_time = time() - start_inner_time
+            self.h_index_time += (time() - start_inner_time)
 
             
             start_core_correct_time = time()
@@ -144,7 +146,7 @@ class HGDecompose():
                 if not self.LLCSAT(H, node, self.core[node], self.core):   
                     flag = False  
                     self.core[node] = self.recursive_core_correct(H, node, self.core[node], self.core)
-            self.core_correct_time = time() - start_core_correct_time
+            self.core_correct_time += (time() - start_core_correct_time)
             k+=1
             if flag:
                 break
@@ -155,6 +157,7 @@ class HGDecompose():
         #     print(self.core)
         
         self.execution_time = time() - start_execution_time
+        print("Iteration: ", k)
 
     def bst_local_core(self, H, verbose = True):
         if verbose:
@@ -185,7 +188,7 @@ class HGDecompose():
             for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
                 self.core[node] = min(H_value, self.core[node])
-            self.h_index_time = time() - start_inner_time
+            self.h_index_time += (time() - start_inner_time)
 
             
             start_core_correct_time = time()
@@ -193,15 +196,13 @@ class HGDecompose():
                 if not self.LLCSAT(H, node, self.core[node], self.core):   
                     flag = False  
                     self.core[node] = self.bst_core_correct(H,node, H.llb[node], self.core[node], self.core[node], self.core)
-                    
-            self.core_correct_time = time() - start_core_correct_time
+            self.core_correct_time += (time() - start_core_correct_time)
             k+=1
             if flag:
                 break
-
         self.loop_time = time() - start_loop_time
-        
         self.execution_time = time() - start_execution_time
+        # print("Iteration: ", k)
 
     def iterative_local_core(self, H, verbose = True):
 
@@ -230,7 +231,7 @@ class HGDecompose():
             for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
                 self.core[node] = min(H_value, self.core[node])
-            self.h_index_time = time() - start_inner_time
+            self.h_index_time += (time() - start_inner_time)
 
             start_core_correct_time = time()
             for node in H.init_node_iterator():
@@ -238,17 +239,14 @@ class HGDecompose():
                     flag = False  
                     self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
    
-            self.core_correct_time = time() - start_core_correct_time
+            self.core_correct_time += (time() - start_core_correct_time)
             k+=1
             if flag:
                 break
 
         self.loop_time = time() - start_loop_time
-        
-        # if(verbose):
-        #     print(self.core)
-        
         self.execution_time = time() - start_execution_time
+        # print("Iteration: ", k)
 
     def improved_local_core(self, H, verbose = True):
         if verbose:

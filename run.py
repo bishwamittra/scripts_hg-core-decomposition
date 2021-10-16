@@ -228,7 +228,7 @@ for iteration in range(args.iterations):
     elif(args.algo == "iterative_local_core"):
         hgDecompose.iterative_local_core(H, verbose=args.verbose)
 
-    elif(args.algo == "bst_local_core"):
+    elif(args.algo == "bst_local_core2"):
         hgDecompose.bst_local_core(H, verbose=args.verbose)
 
     elif(args.algo == "improved_local_core"):
