@@ -4,6 +4,7 @@ from hgDecompose.Hypergraph import Hypergraph
 from copy import deepcopy
 from multiprocessing import Pool
 from hgDecompose.utils import operator_H, par_operator_H
+from hgDecompose.heapdict import heapdict
 # from tests.verify_kcore import *
 
 # def core_correct(H, u, core_u, core_dict):
@@ -256,9 +257,11 @@ class HGDecompose():
         # num_nodes = 0
         # Init
         start_init_time = time()
+        dirty = heapdict()
         for node in H.init_node_iterator():
             len_neighbors = H.get_init_nbrlen(node)
             self.core[node] = len_neighbors
+            dirty[node] = len_neighbors
             # num_nodes += 1
         self.init_time = time() - start_init_time  
         if(verbose):
@@ -269,45 +272,148 @@ class HGDecompose():
         start_loop_time = time()
     
         k = 0
+        
         while True:
+            # print(k)
             if (verbose):
                 print("Iteration: ", k)
             flag = True
-
             start_inner_time = time()
             for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
                 self.core[node] = min(H_value, self.core[node])
+                dirty[node] = self.core[node]
+                # else:
+                #     if node in dirty:
+                #         dirty.remove(node)
+            # print(dirty)
             self.h_index_time += (time() - start_inner_time)
                 # if(verbose):
                 #     print("k:", k, "node:", node, "c[]=",self.core[node])
             
             start_core_correct_time = time()
-            core_corrected_bucket = set()
-            for node in H.init_node_iterator():
-                if node not in core_corrected_bucket:          
-                    if not self.LLCSAT(H, node, self.core[node], self.core):   
-                        prev_core = self.core[node] 
-                        flag = False
-                        self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
-                        core_corrected_bucket.add(node)
+            dirty2 = heapdict()
+            while len(dirty):
+                node, prev_core = dirty.popitem()
+                if not self.LLCSAT(H, node, self.core[node], self.core):   
+                    flag = False
+                    self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    dirty2[node] = self.core[node]
+                    # for u in H.init_nbr[node]:
+                    #     LLCSAT_u = self.LLCSAT(H, u, self.core[u], self.core)
+                    #     if not LLCSAT_u:
+                    #         dirty2[u] = self.core[node]
+                else:
+                    dirty2[node] = prev_core
+            dirty = dirty2
+            # print('->',dirty)
+            # core_corrected_bucket = set()
+            # for node in H.init_node_iterator():
+            #     if node not in core_corrected_bucket:          
+            #         if not self.LLCSAT(H, node, self.core[node], self.core):   
+            #             prev_core = self.core[node] 
+            #             flag = False
+            #             self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+            #             core_corrected_bucket.add(node)
                     
-                        for u in H.init_nbr[node]:
-                            if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
-                                # Instead of checking LLCSAT again assume they must be corrected.
-                                self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
-                                core_corrected_bucket.add(u)
+            #             for u in H.init_nbr[node]:
+            #                 if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
+            #                     # Instead of checking LLCSAT again assume they must be corrected.
+            #                     self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
+            #                     core_corrected_bucket.add(u)
             self.core_correct_time += (time() - start_core_correct_time)
             k+=1
             if flag:
                 break
 
         self.loop_time = time() - start_loop_time
-        
+        self.execution_time = time() - start_execution_time
+        # print(k)
         # if(verbose):
         #     print(self.core)
         
+    def improved_local_core_rev(self, H, verbose = True):
+        if verbose:
+            print('tau: ', H.get_M())
+
+        start_execution_time = time()
+        # num_nodes = 0
+        # Init
+        start_init_time = time()
+        dirty = heapdict()
+        for node in H.init_node_iterator():
+            len_neighbors = H.get_init_nbrlen(node)
+            self.core[node] = len_neighbors
+            dirty[node] = -len_neighbors
+            # num_nodes += 1
+        self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        # Main loop
+        start_loop_time = time()
+    
+        k = 0
+        
+        while True:
+            # print(k)
+            if (verbose):
+                print("Iteration: ", k)
+            flag = True
+            start_inner_time = time()
+            for node in H.init_node_iterator():
+                H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
+                self.core[node] = min(H_value, self.core[node])
+                dirty[node] = -self.core[node]
+                # else:
+                #     if node in dirty:
+                #         dirty.remove(node)
+            # print(dirty)
+            self.h_index_time += (time() - start_inner_time)
+                # if(verbose):
+                #     print("k:", k, "node:", node, "c[]=",self.core[node])
+            
+            start_core_correct_time = time()
+            dirty2 = heapdict()
+            while len(dirty):
+                node, prev_core = dirty.popitem()
+                if not self.LLCSAT(H, node, self.core[node], self.core):   
+                    flag = False
+                    self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    dirty2[node] = self.core[node]
+                    # for u in H.init_nbr[node]:
+                    #     LLCSAT_u = self.LLCSAT(H, u, self.core[u], self.core)
+                    #     if not LLCSAT_u:
+                    #         dirty2[u] = self.core[node]
+                else:
+                    dirty2[node] = prev_core
+            dirty = dirty2
+            # print('->',dirty)
+            # core_corrected_bucket = set()
+            # for node in H.init_node_iterator():
+            #     if node not in core_corrected_bucket:          
+            #         if not self.LLCSAT(H, node, self.core[node], self.core):   
+            #             prev_core = self.core[node] 
+            #             flag = False
+            #             self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+            #             core_corrected_bucket.add(node)
+                    
+            #             for u in H.init_nbr[node]:
+            #                 if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
+            #                     # Instead of checking LLCSAT again assume they must be corrected.
+            #                     self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
+            #                     core_corrected_bucket.add(u)
+            self.core_correct_time += (time() - start_core_correct_time)
+            k+=1
+            if flag:
+                break
+
+        self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
+        print(k)
+        # if(verbose):
+        #     print(self.core)
 
     def naiveNBR(self, H, verbose = True):
         start_execution_time = time()

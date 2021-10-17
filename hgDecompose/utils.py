@@ -217,11 +217,11 @@ def get_hg(dataset):
         dic = {}
         # read from file
         with open(dataset_to_filename[dataset]) as f:
-            lines = f.readlines()
-
-            for idx, line in enumerate(lines):
+            idx = 0
+            for line in f:
                 edge = tuple(line[:-1].split(dataset_to_split[dataset]))
                 dic[idx] = edge
+                idx+=1
 
         H = Hypergraph(dic)
 
