@@ -2,6 +2,7 @@
 from numpy.core.fromnumeric import mean
 import pandas as pd
 from hgDecompose.Hypergraph import Hypergraph
+from hgDecompose.IncidenceRep import HypergraphL
 import random
 import heapq
 
@@ -228,6 +229,75 @@ def get_hg(dataset):
     else:
         raise RuntimeError(dataset + " is not defined or implemented yet")
 
+
+    return H
+
+def get_localhg(dataset):
+    H = None
+    if(dataset == "default"):
+        dic = {
+            0: ('FN', 'TH'),
+            1: ('TH', 'JV'),
+            2: ('BM', 'FN', 'JA'),
+            3: ('JV', 'JU', 'CH', 'BM'),
+            4: ('JU', 'CH', 'BR', 'CN', 'CC', 'JV', 'BM'),
+            5: ('TH', 'GP'),
+            6: ('GP', 'MP'),
+            7: ('MA', 'GP')
+        }
+
+        H = HypergraphL(dic)
+
+    elif(dataset in ['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "congress", "contact","dblp","amazon"]):
+
+        # file location
+        dataset_to_filename = {
+            # real
+            "enron" : "data/datasets/real/Enron.hyp",
+            "congress" : "data/datasets/real/congress-bills.hyp",
+            "contact" : "data/datasets/real/contact-primary-school.hyp",
+            "dblp": "data/datasets/real/DBLP.hyp",
+            "amazon": "data/datasets/real/amazon-reviews.hyp",
+
+            # synthetic
+            "syn" : "data/datasets/synthetic/syn.hyp",
+            "bin_1" : "data/datasets/synthetic/binomial_5_100_4_0.200000_sample_1_iter_1.txt",
+            "bin_2" : "data/datasets/synthetic/binomial_5_500_4_0.200000_sample_2_iter_1.txt",
+            "bin_4" : "data/datasets/synthetic/binomial_5_100_3_0.200000_sample_4_iter_1.txt",
+            "bin_5" : "data/datasets/synthetic/binomial_5_500_3_0.200000_sample_5_iter_1.txt",
+
+        }
+
+        
+        # split by
+        dataset_to_split = {
+            "enron" : ",",
+            "congress" : ",",
+            "contact" : ",",
+            "dblp": ",",
+            "amazon": ",",
+            "syn" : ",",
+            "bin_1" : ",",
+            "bin_2" : ",",
+            "bin_4" : ",",
+            "bin_5" : ",",
+
+        }
+
+        
+        dic = {}
+        # read from file
+        with open(dataset_to_filename[dataset]) as f:
+            idx = 0
+            for line in f:
+                edge = tuple(line[:-1].split(dataset_to_split[dataset]))
+                dic[idx] = edge
+                idx+=1
+
+        H = HypergraphL(dic)
+
+    else:
+        raise RuntimeError(dataset + " is not defined or implemented yet")
 
     return H
 

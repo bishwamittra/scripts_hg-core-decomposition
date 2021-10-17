@@ -1,6 +1,7 @@
 from time import time
 import math
 from hgDecompose.Hypergraph import Hypergraph
+from hgDecompose.IncidenceRep import HypergraphL
 from copy import deepcopy
 from multiprocessing import Pool
 from hgDecompose.utils import operator_H, par_operator_H
@@ -59,6 +60,9 @@ class HGDecompose():
         self.total_iteration = 0
         self.core_correct_time = 0
         self.h_index_time = 0
+        self.max_n = 0 # For #iterations vs dataset barplot
+        self.core_correction_n = [] #  core_corrections volume per iteration
+        self.core_correction_volume = 0 # For core_correction volume vs dataset plot
 
     def preprocess(self):
         pass
@@ -159,6 +163,7 @@ class HGDecompose():
         
         self.execution_time = time() - start_execution_time
         print("Iteration: ", k)
+        self.max_n = k
 
     def bst_local_core(self, H, verbose = True):
         if verbose:
@@ -203,7 +208,9 @@ class HGDecompose():
                 break
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
+        self.max_n = k
         # print("Iteration: ", k)
+
 
     def iterative_local_core(self, H, verbose = True):
 
@@ -247,6 +254,7 @@ class HGDecompose():
 
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
+        self.max_n = k
         # print("Iteration: ", k)
 
     def improved_local_core(self, H, verbose = True):
@@ -328,6 +336,7 @@ class HGDecompose():
 
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
+        self.max_n = k
         # print(k)
         # if(verbose):
         #     print(self.core)
@@ -412,8 +421,104 @@ class HGDecompose():
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
         print(k)
+        self.max_n = k
         # if(verbose):
         #     print(self.core)
+
+    def opt_LCCSAT(self, H, u, core_u):
+        """LCCSAT check using by keeping track of incident edge min(h_indx)"""
+        assert isinstance(H, HypergraphL)
+
+        Nplus = set()
+        for e_id in H.inc_edgeId_iterator(u):
+            if  H.get_min_hindex(e_id = e_id) >= core_u: 
+                edge = H.get_edge_byindex(e_id)
+                Nplus = Nplus.union(edge)
+        if len(Nplus):
+            Nplus.remove(u)
+            if len(Nplus) >= core_u: 
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def opt_local_core(self, H, verbose = True):
+        assert isinstance(H, HypergraphL)
+
+        start_execution_time = time()
+        start_init_time = time()
+        # dirty = heapdict()
+        for node in H.init_node_iterator():
+            len_neighbors = H.get_init_nbrlen(node)
+            self.core[node] = len_neighbors
+            # dirty[node] = len_neighbors
+            # num_nodes += 1
+        self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        # Main loop
+        start_loop_time = time()
+        k = 0
+        while True:
+            print("Iteration: ", k)
+            if (verbose):
+                print("Iteration: ", k)
+            flag = True
+            start_inner_time = time()
+            for node in H.init_node_iterator():
+                H_value = operator_H([self.core[j] for j in H.init_nbr_iterator(node)])
+                if H_value < self.core[node] :
+                    self.core[node] = H_value
+                    H.update_min_hindex(node, H_value)
+                # else:
+                #     self.core[node] = self.core[node]
+                # dirty[node] = self.core[node]
+
+            # print(dirty)
+            self.h_index_time += (time() - start_inner_time)
+                # if(verbose):
+                #     print("k:", k, "node:", node, "c[]=",self.core[node])
+            
+            start_core_correct_time = time()
+            # dirty2 = heapdict()
+            # while len(dirty):
+            #     node, prev_core = dirty.popitem()
+            #     if not self.LLCSAT(H, node, self.core[node], self.core):   
+            #         flag = False
+            #         self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+            #         dirty2[node] = self.core[node]
+            #     else:
+            #         dirty2[node] = prev_core
+            # dirty = dirty2
+            # hhatn = {}
+            for node in H.init_node_iterator():
+                # if not self.LLCSAT(H, node, self.core[node], self.core):
+                if not self.opt_LCCSAT(H, node, self.core[node]):   
+                    flag = False
+                    self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # hhatn[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # H.update_min_hindex(node, hhatn[node])
+                    H.update_min_hindex(node, self.core[node])
+                    
+                    # for u in H.init_nbr[node]:
+                    #     if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
+                    #         # Instead of checking LLCSAT again assume they must be corrected.
+                    #         self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
+                    #         core_corrected_bucket.add(u)
+            self.core_correct_time += (time() - start_core_correct_time)
+            # for node in hhatn:
+            #     self.core[node] = hhatn[node]
+            k+=1
+            if flag:
+                break
+
+        self.loop_time = time() - start_loop_time
+        self.execution_time = time() - start_execution_time
+        self.max_n = k
+        print('opt_local_core: ', k)
 
     def naiveNBR(self, H, verbose = True):
         start_execution_time = time()

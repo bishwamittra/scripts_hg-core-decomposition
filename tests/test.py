@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../")
 from hgDecompose.optimizedhgDecompose import HGDecompose
-from hgDecompose.utils import get_hg
+from hgDecompose.utils import get_hg,get_localhg
 import argparse
 import pandas as pd
 import os
@@ -98,7 +98,11 @@ else:
 
 # compared algo
 # H = deepcopy(input_H)
-H = get_hg(args.dataset)
+if args.algo.startswith('opt') and 'local' in args.algo:
+    H = get_localhg(args.dataset)
+else:
+    H = get_hg(args.dataset)
+
 assert H is not None
 hgDecompose = HGDecompose()
 if(args.algo == "naive_nbr"):
@@ -138,8 +142,11 @@ elif(args.algo == "bst_local_core"):
     hgDecompose.bst_local_core(H, verbose=args.verbose)
 
 elif(args.algo == "improved_local_core"):
-    # hgDecompose.improved_local_core(H, verbose=args.verbose)
-    hgDecompose.improved_local_core_rev(H, verbose=args.verbose)
+    hgDecompose.improved_local_core(H, verbose=args.verbose)
+    # hgDecompose.improved_local_core_rev(H, verbose=args.verbose)
+
+elif(args.algo == "opt_local_core"):
+    hgDecompose.opt_local_core(H, verbose=args.verbose)
 
 # elif(args.algo == "improved_local_core_bst"):
 #     hgDecompose.improved_local_core(H, verbose=args.verbose, bst = True)
