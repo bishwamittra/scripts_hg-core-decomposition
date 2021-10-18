@@ -7,7 +7,7 @@ import networkx as nx
 # from hgDecompose.utils import get_hg_hnx
 # from hgDecompose.newhgDecompose import HGDecompose
 from hgDecompose.optimizedhgDecompose import HGDecompose
-from hgDecompose.utils import get_hg, memory_usage_psutil
+from hgDecompose.utils import get_hg, memory_usage_psutil,get_localhg
 from hgDecompose.influence_propagation import propagate_for_all_vertices, propagate_for_random_seeds
 from hgDecompose.sis_propagation import propagateSIS_for_all_vertices
 import argparse
@@ -108,74 +108,77 @@ if(args.sir or args.sir_exp2):
 
     quit()
 
-# Pandemic propagation
-if(args.sis):
+# # Pandemic propagation
+# if(args.sis):
 
-    input_H = get_hg(args.dataset)
+#     input_H = get_hg(args.dataset)
 
-    H = deepcopy(input_H)
-    assert H is not None
+#     H = deepcopy(input_H)
+#     assert H is not None
 
-    # Loading/saving to file
-    os.system("mkdir -p tests/tmp")
-    fname = "tests/tmp/" + args.dataset + "_" + args.algo + ".pkl"
-    if(not os.path.isfile(fname)):
-        hgDecompose = HGDecompose()
-        if(args.algo == "naive_nbr"):
-            hgDecompose.naiveNBR(input_H, verbose=args.verbose)
-        elif(args.algo == "naive_degree"):
-            hgDecompose.naiveDeg(input_H, verbose=args.verbose)
-        elif(args.algo == "graph_core"):
-            G = H.get_clique_graph()
-            nx_G = nx.Graph()
-            # print("N: ",G.get_N())
-            # print("M: ",G.get_M())
-            # hgDecompose.naiveDeg(G, verbose=args.verbose)
-            for e in G.edge_iterator():
-                nx_G.add_edge(e[0],e[1])
-            hgDecompose.core = nx.core_number(nx_G)
-        else:
+#     # Loading/saving to file
+#     os.system("mkdir -p tests/tmp")
+#     fname = "tests/tmp/" + args.dataset + "_" + args.algo + ".pkl"
+#     if(not os.path.isfile(fname)):
+#         hgDecompose = HGDecompose()
+#         if(args.algo == "naive_nbr"):
+#             hgDecompose.naiveNBR(input_H, verbose=args.verbose)
+#         elif(args.algo == "naive_degree"):
+#             hgDecompose.naiveDeg(input_H, verbose=args.verbose)
+#         elif(args.algo == "graph_core"):
+#             G = H.get_clique_graph()
+#             nx_G = nx.Graph()
+#             # print("N: ",G.get_N())
+#             # print("M: ",G.get_M())
+#             # hgDecompose.naiveDeg(G, verbose=args.verbose)
+#             for e in G.edge_iterator():
+#                 nx_G.add_edge(e[0],e[1])
+#             hgDecompose.core = nx.core_number(nx_G)
+#         else:
 
-            raise RuntimeError(args.algo + " is not defined or implemented yet")
+#             raise RuntimeError(args.algo + " is not defined or implemented yet")
 
-        core_base = hgDecompose.core
-        # print(core_base)
+#         core_base = hgDecompose.core
+#         # print(core_base)
 
-        # dump file
-        with open(fname, 'wb') as handle:
-            pickle.dump(hgDecompose, handle, protocol= 4)
+#         # dump file
+#         with open(fname, 'wb') as handle:
+#             pickle.dump(hgDecompose, handle, protocol= 4)
 
 
-    else:
-        # print("Retrieving saved file")
-        with open(fname, 'rb') as handle:
-            hgDecompose = pickle.load(handle)
-            core_base = hgDecompose.core
+#     else:
+#         # print("Retrieving saved file")
+#         with open(fname, 'rb') as handle:
+#             hgDecompose = pickle.load(handle)
+#             core_base = hgDecompose.core
     
-    # print(core_base)
-    entry = {}
-    entry['dataset'] = args.dataset
-    entry['p'] = float(args.prob)
-    entry["gamma"] = float(args.gamma)
-    entry['algo'] = args.algo
-    entry['result'] = propagateSIS_for_all_vertices(H, core_base, p = float(args.prob), gamma = float(args.gamma), verbose=args.verbose)
+#     # print(core_base)
+#     entry = {}
+#     entry['dataset'] = args.dataset
+#     entry['p'] = float(args.prob)
+#     entry["gamma"] = float(args.gamma)
+#     entry['algo'] = args.algo
+#     entry['result'] = propagateSIS_for_all_vertices(H, core_base, p = float(args.prob), gamma = float(args.gamma), verbose=args.verbose)
 
-    result = pd.DataFrame()
-    result = result.append(entry, ignore_index=True)
-    if(args.verbose): 
-        print(entry)
-        print("\n")
-        print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+#     result = pd.DataFrame()
+#     result = result.append(entry, ignore_index=True)
+#     if(args.verbose): 
+#         print(entry)
+#         print("\n")
+#         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
-    os.system("mkdir -p data/output")
-    result.to_csv('data/output/sis_propagation_result.csv', header=False,
-                            index=False, mode='a')
+#     os.system("mkdir -p data/output")
+#     result.to_csv('data/output/sis_propagation_result.csv', header=False,
+#                             index=False, mode='a')
 
-    quit()
+#     quit()
 
 # hyper-graph construction
 # H = get_hg_hnx(args.dataset)
-input_H = get_hg(args.dataset)
+if args.algo == 'opt_local_core':
+    input_H = get_localhg(args.dataset)
+else:
+    input_H = get_hg(args.dataset)
 print("HG construction done!")
 assert input_H is not None
 
@@ -245,8 +248,12 @@ for iteration in range(args.iterations):
     elif(args.algo == "improved_local_core"):
         hgDecompose.improved_local_core(H, verbose=args.verbose)
     
+    elif(args.algo == "opt_local_core"):
+        hgDecompose.opt_local_core(H, verbose=args.verbose)
+
     # elif(args.algo == "improved_local_core_bst"):
     #     hgDecompose.improved_local_core(H, verbose=args.verbose, bst = True)
+
 
     elif(args.algo == "par_local_core"):
         hgDecompose.par_local_core(H, verbose=args.verbose)
@@ -272,7 +279,11 @@ for iteration in range(args.iterations):
     entry['inner iteration'] = hgDecompose.inner_iteration
     entry['core_correction time'] = hgDecompose.core_correct_time
     entry['h_index_time'] = hgDecompose.h_index_time
-    
+    entry['tau'] = hgDecompose.max_n  # For #iterations vs dataset barplot
+    entry['core_correction_volume'] = hgDecompose.core_correctionvol_n #  core_corrections volume per iteration => Ammount of core_correction done. => Relation with runtime
+    entry['sum_core_correction_volume'] = hgDecompose.core_correction_volume  # For core_correction volume vs dataset plot
+    entry['reduction_in_hhat']  = hgDecompose.reduction_hhat_n  # [ hhat^{n-1} - hhat^{n}, for n \in [1, tau] ] => Convergence plot.
+
     if(True):
         entry['memory taken'] = memory_usage_psutil()
     # print(entry)

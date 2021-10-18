@@ -13,7 +13,9 @@ args = parser.parse_args()
 # algo_list = ['naive_nbr','improved_nbr_simple']
 # algo_list = ['naive_nbr']
 # algo_list = ['bst_local_core']
-algo_list = ['improved_local_core','iterative_local_core', 'naive_nbr', 'improved_nbr_simple']
+# algo_list = ['improved_local_core','iterative_local_core', 'naive_nbr', 'improved_nbr_simple']
+# algo_list = ['opt_local_core','improved_nbr_simple']
+algo_list = ['iterative_local_core', 'opt_local_core','improved_nbr_simple', 'naive_nbr']
 # algo_list = ['bst_local_core','recursive_local_core','iterative_local_core']
 # algo_list = ['recursive_local_core','bst_local_core','improved_local_core']
 # algo_list = ['recursive_local_core', 'improved_local_core','improved_local_core_bst']
@@ -22,9 +24,11 @@ algo_list = ['improved_local_core','iterative_local_core', 'naive_nbr', 'improve
 # algo_list = ['naive_nbr', 'improved_nbr','improved2_nbr','par_improved2_nbr']
 # algo_list = ['par_improved2_nbr','par_improved3_nbr','naive_nbr', 'improved_nbr','improved2_nbr']
 # algo_list = ['par_improved2_nbr','par_improved3_nbr','improved2_nbr']
+# dataset_list = ['syn']
 # dataset_list = ['dblp','amazon']
 # dataset_list = ['syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact', 'dblp','amazon']
-dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact','congress','dblp']
+# dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact','congress','dblp']
+dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact', 'congress','dblp']
 n_thread_list = [1,2,4,8,16,32,64]
 # param_s_dict = {
 #                 'syn':(-1,3), 'bin_1':(25, 33), 'bin_2':(184, 193), 'bin_4':(19,24),
@@ -77,6 +81,6 @@ for i, configuration in enumerate(configurations):
               " --param_s " + str(s) +\
               " --nthreads " + str(nthreads)
         print(cmd) 
-        # os.system(cmd) 
+        os.system(cmd) 
 
 # TO DO: ignore assertion -O

@@ -8,37 +8,6 @@ from hgDecompose.utils import operator_H, par_operator_H
 from hgDecompose.heapdict import heapdict
 # from tests.verify_kcore import *
 
-# def core_correct(H, u, core_u, core_dict):
-#     """ 
-#     Verify if the integer core_u (core(u)) and its sub-neighbourhood S_u = {j \in nbr(u) core(j) >= core(u)} satisfies coreness property.
-#     that is:    " The induced subhyp H[S_u] has at least core(u) vertices. "
-#     If it satisties return (True, core_u) 
-#     If it doesn't, return (False, a correct integer c') 
-#         where c' < core_u is an integer and S'_u = {j \in nbr(u) core(j) >= c'} such that H[S'_u] satisfies coreness property.
-#     """
-#     nbrhood_u_plus = set() # Contains the union of incident_edge(u) such that every v \in e \in nbr_u_plus has core(v) >= core(u).
-#     # gt_coreu = [core_dict[v] for v in H.init_nbr[u] if core_dict[v]>= core_u]
-    
-#     for e_id in H.inc_dict[u]:
-#         edge = H.get_edge_byindex(e_id)
-#         flag = True
-#         for v in edge:
-#             if u!=v:
-#                 if core_dict[v] < core_u:
-#                     flag = False
-#                     break
-
-#         if flag:
-#             nbrhood_u_plus = nbrhood_u_plus.union(edge)
-#             nbrhood_u_plus.remove(u)
-
-#     if len(nbrhood_u_plus) >= core_u: # union of incident_edge(u) such that ... has at least core_u members. 
-#         # u locally satisfies coreness property, and the set nbr_u_plus certifies that. 
-#         return (True, core_u)
-#     else:
-#         core_u = core_u - 1
-#         return (False, core_correct(H, u, core_u, core_dict)[1])
-
 class HGDecompose():
     def __init__(self):
         # self.bucket = {}
@@ -61,8 +30,9 @@ class HGDecompose():
         self.core_correct_time = 0
         self.h_index_time = 0
         self.max_n = 0 # For #iterations vs dataset barplot
-        self.core_correction_n = [] #  core_corrections volume per iteration
+        self.core_correctionvol_n = [] #  core_corrections volume per iteration => Ammount of core_correction done. => Relation with runtime
         self.core_correction_volume = 0 # For core_correction volume vs dataset plot
+        self.reduction_hhat_n = [] # [ hhat^{n-1} - hhat^{n}, for n \in [1, tau] ] => Convergence plot.
 
     def preprocess(self):
         pass
@@ -134,6 +104,8 @@ class HGDecompose():
         start_loop_time = time()
         k = 0
         while True:
+            hn_minus_hhatn = 0
+            hn_1_minus_hn = 0
             if (verbose):
                 print("Iteration: ", k)
             
@@ -143,6 +115,9 @@ class HGDecompose():
             for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
                 self.core[node] = min(H_value, self.core[node])
+                if H_value < self.core[node]:
+                    hn_1_minus_hn += (self.core[node] - H_value)
+                    self.core[node] = H_value 
             self.h_index_time += (time() - start_inner_time)
 
             
@@ -150,70 +125,72 @@ class HGDecompose():
             for node in H.init_node_iterator():   
                 if not self.LLCSAT(H, node, self.core[node], self.core):   
                     flag = False  
-                    self.core[node] = self.recursive_core_correct(H, node, self.core[node], self.core)
+                    hhatn = self.recursive_core_correct(H, node, self.core[node], self.core)
+                    hn_minus_hhatn += (self.core[node] - hhatn)
+                    self.core[node]  = hhatn
             self.core_correct_time += (time() - start_core_correct_time)
+            self.core_correctionvol_n.append(hn_minus_hhatn)
+            self.reduction_hhat_n.append(hn_1_minus_hn + hn_minus_hhatn)
+
             k+=1
             if flag:
                 break
 
         self.loop_time = time() - start_loop_time
-        
-        # if(verbose):
-        #     print(self.core)
-        
         self.execution_time = time() - start_execution_time
         print("Iteration: ", k)
+        self.core_correction_volume = sum(self.core_correctionvol_n)
         self.max_n = k
 
-    def bst_local_core(self, H, verbose = True):
-        if verbose:
-            print('tau: ', H.get_M())
+    # def bst_local_core(self, H, verbose = True):
+    #     if verbose:
+    #         print('tau: ', H.get_M())
 
-        start_execution_time = time()
-        start_init_time = time()
-        for node in H.init_node_iterator():
-            len_neighbors = H.get_init_nbrlen(node)
-            self.core[node] = len_neighbors
+    #     start_execution_time = time()
+    #     start_init_time = time()
+    #     for node in H.init_node_iterator():
+    #         len_neighbors = H.get_init_nbrlen(node)
+    #         self.core[node] = len_neighbors
             
-        self.init_time = time() - start_init_time  
-        if(verbose):
-            print("Init core")
-            print(self.core)
+    #     self.init_time = time() - start_init_time  
+    #     if(verbose):
+    #         print("Init core")
+    #         print(self.core)
 
-        start_loop_time = time()
+    #     start_loop_time = time()
     
-        k = 0
+    #     k = 0
         
-        while True:
-            if (verbose):
-                print("Iteration: ", k)
+    #     while True:
+    #         if (verbose):
+    #             print("Iteration: ", k)
             
-            flag = True
+    #         flag = True
 
-            start_inner_time = time()
-            for node in H.init_node_iterator():
-                H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
-                self.core[node] = min(H_value, self.core[node])
-            self.h_index_time += (time() - start_inner_time)
+    #         start_inner_time = time()
+    #         for node in H.init_node_iterator():
+    #             H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
+    #             self.core[node] = min(H_value, self.core[node])
+    #         self.h_index_time += (time() - start_inner_time)
 
             
-            start_core_correct_time = time()
-            for node in H.init_node_iterator():
-                if not self.LLCSAT(H, node, self.core[node], self.core):   
-                    flag = False  
-                    self.core[node] = self.bst_core_correct(H,node, H.llb[node], self.core[node], self.core[node], self.core)
-            self.core_correct_time += (time() - start_core_correct_time)
-            k+=1
-            if flag:
-                break
-        self.loop_time = time() - start_loop_time
-        self.execution_time = time() - start_execution_time
-        self.max_n = k
-        # print("Iteration: ", k)
+    #         start_core_correct_time = time()
+    #         for node in H.init_node_iterator():
+    #             if not self.LLCSAT(H, node, self.core[node], self.core):   
+    #                 flag = False  
+    #                 self.core[node] = self.bst_core_correct(H,node, H.llb[node], self.core[node], self.core[node], self.core)
+    #         self.core_correct_time += (time() - start_core_correct_time)
+    #         k+=1
+    #         if flag:
+    #             break
+    #     self.loop_time = time() - start_loop_time
+    #     self.execution_time = time() - start_execution_time
+    #     self.max_n = k
+    #     # print("Iteration: ", k)
 
 
     def iterative_local_core(self, H, verbose = True):
-
+        
         start_execution_time = time()
 
         start_init_time = time()
@@ -230,6 +207,8 @@ class HGDecompose():
         start_loop_time = time()
         k = 0
         while True:
+            hn_minus_hhatn = 0
+            hn_1_minus_hn = 0
             if (verbose):
                 print("Iteration: ", k)
 
@@ -238,22 +217,30 @@ class HGDecompose():
             start_inner_time = time()
             for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
-                self.core[node] = min(H_value, self.core[node])
+                if H_value < self.core[node]:
+                    hn_1_minus_hn += (self.core[node] - H_value)
+                    self.core[node] = H_value 
             self.h_index_time += (time() - start_inner_time)
 
             start_core_correct_time = time()
             for node in H.init_node_iterator():
                 if not self.LLCSAT(H, node, self.core[node], self.core):   
                     flag = False  
-                    self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
-   
+                    hhatn = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    hn_minus_hhatn += (self.core[node] - hhatn)
+                    self.core[node]  = hhatn
+
             self.core_correct_time += (time() - start_core_correct_time)
+            self.core_correctionvol_n.append(hn_minus_hhatn)
+            self.reduction_hhat_n.append(hn_1_minus_hn + hn_minus_hhatn)
+            
             k+=1
             if flag:
                 break
 
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
+        self.core_correction_volume = sum(self.core_correctionvol_n)
         self.max_n = k
         # print("Iteration: ", k)
 
@@ -282,15 +269,18 @@ class HGDecompose():
         k = 0
         
         while True:
-            # print(k)
+            hn_1_minus_hn = 0 
+            hn_minus_hhatn = 0
             if (verbose):
                 print("Iteration: ", k)
             flag = True
             start_inner_time = time()
             for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
-                self.core[node] = min(H_value, self.core[node])
-                dirty[node] = self.core[node]
+                if H_value < self.core[node]:
+                    hn_1_minus_hn += (self.core[node] - H_value)
+                    self.core[node] = H_value 
+                    dirty[node] = self.core[node]
                 # else:
                 #     if node in dirty:
                 #         dirty.remove(node)
@@ -305,8 +295,9 @@ class HGDecompose():
                 node, prev_core = dirty.popitem()
                 if not self.LLCSAT(H, node, self.core[node], self.core):   
                     flag = False
-                    self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
-                    dirty2[node] = self.core[node]
+                    hhatn = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    hn_minus_hhatn += (self.core[node] - hhatn)
+                    dirty2[node]  = self.core[node] = hhatn
                     # for u in H.init_nbr[node]:
                     #     LLCSAT_u = self.LLCSAT(H, u, self.core[u], self.core)
                     #     if not LLCSAT_u:
@@ -330,101 +321,17 @@ class HGDecompose():
             #                     self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
             #                     core_corrected_bucket.add(u)
             self.core_correct_time += (time() - start_core_correct_time)
+            self.core_correctionvol_n.append(hn_minus_hhatn)
+            self.reduction_hhat_n.append(hn_1_minus_hn + hn_minus_hhatn)
             k+=1
             if flag:
                 break
 
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
+        self.core_correction_volume = sum(self.core_correctionvol_n)
         self.max_n = k
-        # print(k)
-        # if(verbose):
-        #     print(self.core)
         
-    def improved_local_core_rev(self, H, verbose = True):
-        if verbose:
-            print('tau: ', H.get_M())
-
-        start_execution_time = time()
-        # num_nodes = 0
-        # Init
-        start_init_time = time()
-        dirty = heapdict()
-        for node in H.init_node_iterator():
-            len_neighbors = H.get_init_nbrlen(node)
-            self.core[node] = len_neighbors
-            dirty[node] = -len_neighbors
-            # num_nodes += 1
-        self.init_time = time() - start_init_time  
-        if(verbose):
-            print("Init core")
-            print(self.core)
-
-        # Main loop
-        start_loop_time = time()
-    
-        k = 0
-        
-        while True:
-            # print(k)
-            if (verbose):
-                print("Iteration: ", k)
-            flag = True
-            start_inner_time = time()
-            for node in H.init_node_iterator():
-                H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
-                self.core[node] = min(H_value, self.core[node])
-                dirty[node] = -self.core[node]
-                # else:
-                #     if node in dirty:
-                #         dirty.remove(node)
-            # print(dirty)
-            self.h_index_time += (time() - start_inner_time)
-                # if(verbose):
-                #     print("k:", k, "node:", node, "c[]=",self.core[node])
-            
-            start_core_correct_time = time()
-            dirty2 = heapdict()
-            while len(dirty):
-                node, prev_core = dirty.popitem()
-                if not self.LLCSAT(H, node, self.core[node], self.core):   
-                    flag = False
-                    self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
-                    dirty2[node] = self.core[node]
-                    # for u in H.init_nbr[node]:
-                    #     LLCSAT_u = self.LLCSAT(H, u, self.core[u], self.core)
-                    #     if not LLCSAT_u:
-                    #         dirty2[u] = self.core[node]
-                else:
-                    dirty2[node] = prev_core
-            dirty = dirty2
-            # print('->',dirty)
-            # core_corrected_bucket = set()
-            # for node in H.init_node_iterator():
-            #     if node not in core_corrected_bucket:          
-            #         if not self.LLCSAT(H, node, self.core[node], self.core):   
-            #             prev_core = self.core[node] 
-            #             flag = False
-            #             self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
-            #             core_corrected_bucket.add(node)
-                    
-            #             for u in H.init_nbr[node]:
-            #                 if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
-            #                     # Instead of checking LLCSAT again assume they must be corrected.
-            #                     self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
-            #                     core_corrected_bucket.add(u)
-            self.core_correct_time += (time() - start_core_correct_time)
-            k+=1
-            if flag:
-                break
-
-        self.loop_time = time() - start_loop_time
-        self.execution_time = time() - start_execution_time
-        print(k)
-        self.max_n = k
-        # if(verbose):
-        #     print(self.core)
-
     def opt_LCCSAT(self, H, u, core_u):
         """LCCSAT check using by keeping track of incident edge min(h_indx)"""
         assert isinstance(H, HypergraphL)
@@ -463,14 +370,16 @@ class HGDecompose():
         start_loop_time = time()
         k = 0
         while True:
-            print("Iteration: ", k)
+            hn_1_minus_hn = 0 
+            hn_minus_hhatn = 0
             if (verbose):
                 print("Iteration: ", k)
             flag = True
             start_inner_time = time()
             for node in H.init_node_iterator():
                 H_value = operator_H([self.core[j] for j in H.init_nbr_iterator(node)])
-                if H_value < self.core[node] :
+                if H_value < self.core[node]:
+                    hn_1_minus_hn += (self.core[node] - H_value)
                     self.core[node] = H_value
                     H.update_min_hindex(node, H_value)
                 # else:
@@ -498,8 +407,12 @@ class HGDecompose():
                 # if not self.LLCSAT(H, node, self.core[node], self.core):
                 if not self.opt_LCCSAT(H, node, self.core[node]):   
                     flag = False
-                    self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
                     # hhatn[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    hhatn = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    hn_minus_hhatn += (self.core[node] - hhatn)
+                    self.core[node]  = hhatn
+
                     # H.update_min_hindex(node, hhatn[node])
                     H.update_min_hindex(node, self.core[node])
                     
@@ -509,6 +422,8 @@ class HGDecompose():
                     #         self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
                     #         core_corrected_bucket.add(u)
             self.core_correct_time += (time() - start_core_correct_time)
+            self.core_correctionvol_n.append(hn_minus_hhatn)
+            self.reduction_hhat_n.append(hn_1_minus_hn + hn_minus_hhatn)
             # for node in hhatn:
             #     self.core[node] = hhatn[node]
             k+=1
@@ -517,8 +432,9 @@ class HGDecompose():
 
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
+        self.core_correction_volume = sum(self.core_correctionvol_n)
         self.max_n = k
-        print('opt_local_core: ', k)
+        # print('opt_local_core: ', k)
 
     def naiveNBR(self, H, verbose = True):
         start_execution_time = time()
@@ -1700,3 +1616,90 @@ class HGDecompose():
                 print(self.core)
 
             k+=1
+
+    def improved_local_core_rev(self, H, verbose = True):
+        """ Not an improvement really!! 
+        Vertices popped in Decreasing order of hindex from heap .
+        """
+        if verbose:
+            print('tau: ', H.get_M())
+
+        start_execution_time = time()
+        # num_nodes = 0
+        # Init
+        start_init_time = time()
+        dirty = heapdict()
+        for node in H.init_node_iterator():
+            len_neighbors = H.get_init_nbrlen(node)
+            self.core[node] = len_neighbors
+            dirty[node] = -len_neighbors
+            # num_nodes += 1
+        self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        # Main loop
+        start_loop_time = time()
+    
+        k = 0
+        
+        while True:
+            # print(k)
+            if (verbose):
+                print("Iteration: ", k)
+            flag = True
+            start_inner_time = time()
+            for node in H.init_node_iterator():
+                H_value = operator_H([self.core[j] for j in H.get_init_nbr(node)])
+                self.core[node] = min(H_value, self.core[node])
+                dirty[node] = -self.core[node]
+                # else:
+                #     if node in dirty:
+                #         dirty.remove(node)
+            # print(dirty)
+            self.h_index_time += (time() - start_inner_time)
+                # if(verbose):
+                #     print("k:", k, "node:", node, "c[]=",self.core[node])
+            
+            start_core_correct_time = time()
+            dirty2 = heapdict()
+            while len(dirty):
+                node, prev_core = dirty.popitem()
+                if not self.LLCSAT(H, node, self.core[node], self.core):   
+                    flag = False
+                    self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    dirty2[node] = self.core[node]
+                    # for u in H.init_nbr[node]:
+                    #     LLCSAT_u = self.LLCSAT(H, u, self.core[u], self.core)
+                    #     if not LLCSAT_u:
+                    #         dirty2[u] = self.core[node]
+                else:
+                    dirty2[node] = prev_core
+            dirty = dirty2
+            # print('->',dirty)
+            # core_corrected_bucket = set()
+            # for node in H.init_node_iterator():
+            #     if node not in core_corrected_bucket:          
+            #         if not self.LLCSAT(H, node, self.core[node], self.core):   
+            #             prev_core = self.core[node] 
+            #             flag = False
+            #             self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+            #             core_corrected_bucket.add(node)
+                    
+            #             for u in H.init_nbr[node]:
+            #                 if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
+            #                     # Instead of checking LLCSAT again assume they must be corrected.
+            #                     self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
+            #                     core_corrected_bucket.add(u)
+            self.core_correct_time += (time() - start_core_correct_time)
+            k+=1
+            if flag:
+                break
+
+        self.loop_time = time() - start_loop_time
+        self.execution_time = time() - start_execution_time
+        print(k)
+        self.max_n = k
+        # if(verbose):
+        #     print(self.core)

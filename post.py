@@ -14,9 +14,9 @@ os.system("./clean.sh")
 path = "NNdhUiT@biggraph.scse.ntu.edu.sg:/data1/Naheed/hgDecompose/"
 
 if(args.all):
-    os.system("tar -czvf file_to_send.tar.gz hgDecompose/* data/* tests/tmp/* HyperNetX/* *.py *sh *md")
+    os.system("tar -czvf file_to_send.tar.gz hgDecompose/* data/* HyperNetX/* *.py *sh *md")
 else:
-    os.system("tar -czvf file_to_send.tar.gz hgDecompose/* tests/tmp/* *.py *sh *md")
+    os.system("tar -czvf file_to_send.tar.gz hgDecompose/* *.py *sh *md")
 os.system("rsync -vaP file_to_send.tar.gz "+path)
 
 
