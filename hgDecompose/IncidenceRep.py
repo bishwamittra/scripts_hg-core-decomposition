@@ -19,6 +19,7 @@ class HypergraphL:
                 self.init_nbrsize[v] = len(nbr_v)
                 self.init_nbr[v] = nbr_v  # neighbourbood set update
         
+        self.init_nodes = sorted(self.init_nodes)
         self.edge_min_hindex = {} # key = edge_id, value => min (h_index of vertices in hyperedge edge_id)
         for v in self.init_nodes:
             nbr_v = self.init_nbrsize[v]
