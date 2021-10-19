@@ -356,6 +356,7 @@ class HGDecompose():
 
         start_execution_time = time()
         total_store_time = 0
+        total_store_time0 = 0
         start_init_time = time()
         # dirty = heapdict()
         for node in H.init_node_iterator():
@@ -382,7 +383,7 @@ class HGDecompose():
                 print("\n")
                 print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
-            self.total_store_time0 += time() - start_store_time
+            total_store_time0 += time() - start_store_time
         # Main loop
         start_loop_time = time()
         k = 0
@@ -465,13 +466,14 @@ class HGDecompose():
                 break
 
         self.loop_time = time() - start_loop_time
-        self.execution_time = time() - start_execution_time - self.total_store_time0
+        self.execution_time = time() - start_execution_time
 
         # store time is significant
         if(store_core_information):
             
             self.loop_time -= total_store_time
             self.execution_time -= total_store_time
+            self.execution_time -= total_store_time0
         self.core_correction_volume = sum(self.core_correctionvol_n)
         self.max_n = k
         # print('opt_local_core: ', k)
