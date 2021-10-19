@@ -6,6 +6,7 @@ from copy import deepcopy
 from multiprocessing import Pool
 from hgDecompose.utils import operator_H, par_operator_H
 from hgDecompose.heapdict import heapdict
+import pandas as pd
 # from tests.verify_kcore import *
 
 class HGDecompose():
@@ -350,10 +351,11 @@ class HGDecompose():
         else:
             return False
 
-    def opt_local_core(self, H, verbose = True):
+    def opt_local_core(self, H, verbose = True, store_core_information = False, filename=None, info_dic = {}):
         assert isinstance(H, HypergraphL)
 
         start_execution_time = time()
+        total_store_time = 0
         start_init_time = time()
         # dirty = heapdict()
         for node in H.init_node_iterator():
@@ -427,11 +429,35 @@ class HGDecompose():
             # for node in hhatn:
             #     self.core[node] = hhatn[node]
             k+=1
+
+            if(store_core_information):
+                start_store_time = time()
+                info_dic['iteration'] = k
+                info_dic['core'] = self.core
+                
+                # store to file
+                result = pd.DataFrame()
+                result = result.append(info_dic, ignore_index=True)
+                result.to_csv(filename, header=False,index=False, mode='a')
+                if(verbose): 
+                    print(info_dic)
+                    print("\n")
+                    print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+
+                total_store_time += time() - start_store_time
+            
             if flag:
                 break
 
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
+
+        # store time is significant
+        if(store_core_information):
+            
+            self.loop_time -= total_store_time
+            self.execution_time -= total_store_time
         self.core_correction_volume = sum(self.core_correctionvol_n)
         self.max_n = k
         # print('opt_local_core: ', k)

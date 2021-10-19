@@ -250,7 +250,7 @@ for iteration in range(args.iterations):
         hgDecompose.improved_local_core(H, verbose=args.verbose)
     
     elif(args.algo == "opt_local_core"):
-        hgDecompose.opt_local_core(H, verbose=args.verbose)
+        hgDecompose.opt_local_core(H, verbose=args.verbose, store_core_information=True, filename="data/output/results_local_core.csv", info_dic={'algo' : args.algo, 'dataset' : args.dataset, 'num_threads' : args.nthreads, 'outer iteration' : iteration})
 
     # elif(args.algo == "improved_local_core_bst"):
     #     hgDecompose.improved_local_core(H, verbose=args.verbose, bst = True)
