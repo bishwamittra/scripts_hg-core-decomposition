@@ -373,6 +373,7 @@ class HGDecompose():
             start_store_time = time()
             info_dic['iteration'] = 0
             info_dic['core'] = self.core
+            info_dic['execution time'] = time() - start_execution_time
             
             # store to file
             result = pd.DataFrame()
@@ -450,6 +451,8 @@ class HGDecompose():
                 start_store_time = time()
                 info_dic['iteration'] = k
                 info_dic['core'] = self.core
+                info_dic['execution time'] = time() - start_execution_time - total_store_time
+
                 
                 # store to file
                 result = pd.DataFrame()
