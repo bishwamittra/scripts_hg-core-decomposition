@@ -437,7 +437,6 @@ class HGDecompose():
         # print('opt_local_core: ', k)
 
     def naiveNBR(self, H, verbose = True):
-        print('naivenbr')
         start_execution_time = time()
         num_nodes = 0
         _node_to_num_neighbors = {}
@@ -452,7 +451,7 @@ class HGDecompose():
             bucket[len_neighbors].add(node)
             num_nodes += 1
         self.init_time = time() - start_init_time
-        print('init done')
+
         if(verbose):
             # print("\n---------- Initial neighbors -------")
             # for node in H.nodes():

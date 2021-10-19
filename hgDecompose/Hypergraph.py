@@ -25,11 +25,7 @@ class Hypergraph:
             return
 
         self.i = 0
-        j = 0
         for e_id, e in _edgedict.items():
-            j+=1 
-            if j%10000 == 0:
-                print(j)
             _len = len(e)
             
             self.e_indices[e_id] = (self.i, self.i + _len)
@@ -49,7 +45,7 @@ class Hypergraph:
 
         self.init_nodes = sorted(self.init_nodes)
         
-        print('Global-local ub')
+        # print('Global-local ub')
         # Computing global upper and lower bounds
         self.glb = math.inf
         self.gub = -math.inf
@@ -86,7 +82,7 @@ class Hypergraph:
         #                 _bucket[max_value].add(u)
         #                 _inv_bucket[u] = max_value
 
-        print('llb')
+        
         self.llb = {}
         _min_llb = math.inf
         # Local lower bound computation
@@ -96,7 +92,7 @@ class Hypergraph:
                 _max = max(_max, len(self.get_edge_byindex(e_id)) - 1)
             self.llb[v] = max(_max, self.glb)
             _min_llb = min(_min_llb, self.llb[v])
-        print('init done')
+
         # self.sorted_ub_set.add(_min_llb - 1)
         # self.sorted_ub_set = sorted(list(self.sorted_ub_set), reverse=True)
         # del _bucket
