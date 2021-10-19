@@ -368,6 +368,21 @@ class HGDecompose():
             print("Init core")
             print(self.core)
 
+        if(store_core_information):
+            start_store_time = time()
+            info_dic['iteration'] = 0
+            info_dic['core'] = self.core
+            
+            # store to file
+            result = pd.DataFrame()
+            result = result.append(info_dic, ignore_index=True)
+            result.to_csv(filename, header=False,index=False, mode='a')
+            if(verbose): 
+                print(info_dic)
+                print("\n")
+                print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+            self.total_store_time0 += time() - start_store_time
         # Main loop
         start_loop_time = time()
         k = 0
@@ -444,14 +459,13 @@ class HGDecompose():
                     print("\n")
                     print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
-
                 total_store_time += time() - start_store_time
             
             if flag:
                 break
 
         self.loop_time = time() - start_loop_time
-        self.execution_time = time() - start_execution_time
+        self.execution_time = time() - start_execution_time - self.total_store_time0
 
         # store time is significant
         if(store_core_information):
