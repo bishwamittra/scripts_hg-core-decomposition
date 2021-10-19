@@ -78,6 +78,7 @@ if(args.sir or args.sir_exp2):
             hgDecompose = pickle.load(handle)
             core_base = hgDecompose.core
     
+    quit()
     # print(core_base)
     entry = {}
     entry['dataset'] = args.dataset
@@ -297,8 +298,8 @@ for iteration in range(args.iterations):
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")
-    result.to_csv('data/output/result.csv', header=False,
-                            index=False, mode='a')
+    # result.to_csv('data/output/result.csv', header=False,
+    #                         index=False, mode='a')
 
 
 

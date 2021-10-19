@@ -233,7 +233,7 @@ class HGDecompose():
             self.core_correct_time += (time() - start_core_correct_time)
             self.core_correctionvol_n.append(hn_minus_hhatn)
             self.reduction_hhat_n.append(hn_1_minus_hn + hn_minus_hhatn)
-            
+
             k+=1
             if flag:
                 break
@@ -437,6 +437,7 @@ class HGDecompose():
         # print('opt_local_core: ', k)
 
     def naiveNBR(self, H, verbose = True):
+        print('naivenbr')
         start_execution_time = time()
         num_nodes = 0
         _node_to_num_neighbors = {}
@@ -451,7 +452,7 @@ class HGDecompose():
             bucket[len_neighbors].add(node)
             num_nodes += 1
         self.init_time = time() - start_init_time
-
+        print('init done')
         if(verbose):
             # print("\n---------- Initial neighbors -------")
             # for node in H.nodes():
@@ -529,7 +530,7 @@ class HGDecompose():
         assert isinstance(H,Hypergraph)
         start_execution_time = time()
         bucket = {}
-        nodes = list(H.nodes())
+        nodes = H.init_nodes
         num_nodes = len(nodes)
 
         # Initial bucket fill-up

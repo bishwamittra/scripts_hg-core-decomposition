@@ -10,11 +10,13 @@ backup_output/*
 data/output/*
 data/output/fig*/*
 data/datasets/*
+results_final/*
 run_*/*
 tests/data/*
 tests/tmp/*
 tests/tests/*
 vis/*
+plfit/*
 # C extensions
 *.so
 
