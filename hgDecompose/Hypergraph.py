@@ -517,7 +517,7 @@ class Hypergraph:
         scenes = {}
         for i, edge in enumerate(binary_edges):
             scenes[i] = list(edge)
-        print(scenes)
+        # print(scenes)
         return Hypergraph(scenes)
 
     # def weak_subgraph(self, vertex_list):
