@@ -404,7 +404,8 @@ class HGDecompose():
                 # else:
                 #     self.core[node] = self.core[node]
                 # dirty[node] = self.core[node]
-
+            if (verbose):
+                print(self.core)
             # print(dirty)
             self.h_index_time += (time() - start_inner_time)
                 # if(verbose):
@@ -446,7 +447,9 @@ class HGDecompose():
             # for node in hhatn:
             #     self.core[node] = hhatn[node]
             k+=1
-
+            if (verbose):
+                print("Corrected: ",self.core)
+                
             if(store_core_information):
                 start_store_time = time()
                 info_dic['iteration'] = k

@@ -79,7 +79,7 @@ for i, configuration in enumerate(configurations):
               " --param_s " + str(s) +\
               " --nthreads " + str(nthreads)
         print(cmd) 
-        os.system(cmd)
+        # os.system(cmd)
         # break 
 
 # TO DO: ignore assertion -O

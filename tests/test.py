@@ -1,6 +1,7 @@
 import sys
 sys.path.append("../")
 from hgDecompose.optimizedhgDecompose import HGDecompose
+from hgDecompose.IncidenceRep import HypergraphL
 from hgDecompose.utils import get_hg,get_localhg
 import argparse
 import pandas as pd
@@ -32,26 +33,32 @@ if (args.rand>0):
     import random
     N = int(args.rand)
     for i  in range(0, N):
-        # seed = 544621
-        seed = random.randint(0, 1000000)
+        seed = 544621
+        # seed = random.randint(0, 1000000)
         print(i,' seed: ',seed)
         Hg = get_random_hg(n = 5, m = 3, edge_size_ub = 3, seed = seed)
-        Hg_cpy = deepcopy(Hg)
-        print([e for e in Hg.edge_iterator()])
-        # hgDecompose = HGDecompose()
-        # hgDecompose.wrong_local_core(Hg, verbose=args.verbose)
-        # core_compared = hgDecompose.core
-
+        # Hg_cpy = deepcopy(Hg)
+        # print([e for e in Hg.edge_iterator()])
         hgDecompose = HGDecompose()
-        hgDecompose.improvedNBR_simplified(Hg, verbose=args.verbose)
-        core_compared = deepcopy(hgDecompose.core)
-        hgDecompose.core = {}
+        hgDecompose.wrong_local_core(Hg, verbose=args.verbose)
+        core_compared = hgDecompose.core
+
+        # hgDecompose = HGDecompose()
+        # hgDecompose.naiveNBR(Hg_cpy, verbose=args.verbose)
+        # core_base = hgDecompose.core
+        # hgDecompose.improvedNBR_simplified(Hg, verbose=args.verbose)
+        # core_compared = deepcopy(hgDecompose.core)
+        # hgDecompose.core = {}
         
-        hgDecompose.naiveNBR(Hg_cpy, verbose=args.verbose)
+        _d = {}
+        for _id, e in Hg.edge_eid_iterator():
+            _d[_id] = e 
+        Hg_cpy = HypergraphL(_d)
+        hgDecompose.opt_local_core(Hg_cpy, verbose=args.verbose)
         core_base = hgDecompose.core
         
-        # print(core_base)
-        # print(core_compared)
+        print(core_base)
+        print(core_compared)
         for v in core_base:
             assert v in core_compared, str(v) + " is not in core_compared"
             assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
