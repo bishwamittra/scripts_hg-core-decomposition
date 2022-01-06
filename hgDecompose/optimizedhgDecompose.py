@@ -58,6 +58,7 @@ class HGDecompose():
             return False
 
     def bst_core_correct(self, H, u, h_minus, h_plus, core_u, core_dict):
+        """ Finds the correct \hat{h} using binary search """
         LLCSAT_h_min = self.LLCSAT(H, u, h_minus, core_dict)
         LLCSAT_h_plus = self.LLCSAT(H, u, h_plus, core_dict)
         if LLCSAT_h_min == LLCSAT_h_plus == True:
@@ -74,6 +75,7 @@ class HGDecompose():
             return self.bst_core_correct(H, u, h_minus, h_plus, core_u, core_dict)
 
     def iterative_core_correct(self, H, u, core_u, core_dict):
+        """ Finds the correct \hat{h} by traversing in descending order from core_u, core_u-1,...,until correct."""
         core_u = core_u - 1
         while not self.LLCSAT(H, u, core_u, core_dict):
             core_u = core_u - 1
@@ -81,6 +83,7 @@ class HGDecompose():
 
     def recursive_core_correct(self, H, u, core_u, core_dict):
         """ 
+        Finds the correct \hat{h} recursively calling LLCSAT() => Variant of iterative_core_correct.
         Verify if core_u locally satisfies the property that the induced sub_neighborhood of u has at least u vertices. 
         If true returns core_u, If False, returns the correctd core_value.
         """
@@ -91,6 +94,7 @@ class HGDecompose():
             return core_u
         
     def local_core(self, H, verbose = True):
+        """ Local algorithm that uses recursive variant of core-correction. """
         start_execution_time = time()
         start_init_time = time()
         for node in H.init_node_iterator():
@@ -144,6 +148,7 @@ class HGDecompose():
         self.max_n = k
 
     # def bst_local_core(self, H, verbose = True):
+    """ Local algorithm that uses bst variant of core-correction. """
     #     if verbose:
     #         print('tau: ', H.get_M())
 
@@ -191,7 +196,7 @@ class HGDecompose():
 
 
     def iterative_local_core(self, H, verbose = True):
-        
+        """ Local algorithm that uses iterative variant of core-correction. => The pseudocode in paper. """
         start_execution_time = time()
 
         start_init_time = time()
@@ -246,6 +251,12 @@ class HGDecompose():
         # print("Iteration: ", k)
 
     def improved_local_core(self, H, verbose = True):
+        """ 
+        A supposedly faster variant of Local core. 
+        [This reduces the number of global iterations, but overall is not fast. Because the bottleneck is not the global #iteration]
+        Here we LCCSAT & Core-correct vertices in ascending order of their (current) core-value (approximation at iteration t)
+        Previously we didnot take order of core-correction into consideration. 
+        """
         if verbose:
             print('tau: ', H.get_M())
 
@@ -334,7 +345,11 @@ class HGDecompose():
         self.max_n = k
         
     def opt_LCCSAT(self, H, u, core_u):
-        """LCCSAT check using by keeping track of incident edge min(h_indx)"""
+        """
+        For each edge e, we keep track of the quantity { \min(h_indx(v): \forall v in e }
+        We use that to perform LCCSAT check faster. 
+            => Faster, because we avoid iterating edges whose { \min(h_indx(v): \forall v in e } < core_u. 
+        """
         assert isinstance(H, HypergraphL)
 
         Nplus = set()
@@ -352,6 +367,9 @@ class HGDecompose():
             return False
 
     def opt_local_core(self, H, verbose = True, store_core_information = False, filename=None, info_dic = {}):
+        """ 
+        More efficient local core computation: The times reported in the paper comes from this implementation.
+        """
         assert isinstance(H, HypergraphL)
 
         start_execution_time = time()
@@ -449,7 +467,7 @@ class HGDecompose():
             k+=1
             if (verbose):
                 print("Corrected: ",self.core)
-                
+
             if(store_core_information):
                 start_store_time = time()
                 info_dic['iteration'] = k
@@ -483,6 +501,68 @@ class HGDecompose():
         self.core_correction_volume = sum(self.core_correctionvol_n)
         self.max_n = k
         # print('opt_local_core: ', k)
+
+    def bipartitedist2core(self, H, verbose = True):
+        
+        H.initBiparite()
+        _node_to_num_neighbors = {}
+        bucket = {}
+        num_nodes = 0
+        for node in H.init_node_iterator():
+            len_neighbors = len(H.getDist2nbr(node))
+            # print('N(',node,') = ', H.getDist2nbr(node))
+            _node_to_num_neighbors[node] = len_neighbors
+            if len_neighbors not in bucket:
+                bucket[len_neighbors] = []
+            bucket[len_neighbors].append(node)
+            num_nodes += 1
+        if(verbose):
+            print(bucket)
+
+        for k in range(1, num_nodes + 1):
+            while len(bucket.get(k, [])) != 0:
+                v = bucket[k].pop()  # get first element in the
+                
+                if(verbose):
+                    print("k:", k, "node:", v)
+    
+                self.core[v] = k
+                
+                nbr_v = H.getDist2nbr(v)
+                # print('nbr(',v,') = ',nbr_v)
+                H.bipartiteDeleteu(v)
+
+                # enumerating over all neighbors of v
+                for u in nbr_v:
+                    
+                    if (verbose):
+                        print("node_to_num_neighbours: ",_node_to_num_neighbors)
+                        print("Considering neighbor", u)
+
+                    len_neighbors_u = len(H.getDist2nbr(u))
+                    
+                    max_value = max(len_neighbors_u, k)
+
+                    if(verbose):
+                        print("max core between", k, 'and', len_neighbors_u, "is ", max_value)
+                        print("The location of", u, "is updated from", _node_to_num_neighbors[u], "to", max_value)
+
+
+                    # Move u to new location in bucket
+                    prev_idx = _node_to_num_neighbors[u]
+                    # if verbose:
+                    #     print('prev_idx: ',prev_idx, bucket[prev_idx])
+                    bucket[prev_idx].remove(u)
+
+                    if max_value not in bucket:
+                        bucket[max_value] = []
+                    bucket[max_value].append(u)
+                    self.num_bucket_update += 1
+                    
+                    _node_to_num_neighbors[u] = max_value    
+        if(verbose):
+            print("\n\nOutput")
+            print(self.core)
 
     def naiveNBR(self, H, verbose = True):
         start_execution_time = time()
@@ -671,27 +751,6 @@ class HGDecompose():
 
 
         self.execution_time = time() - start_execution_time
-
-    # Interval generator function (optimized) (s is a parameter)
-    def generate_intervals(self, H, s = 1, verbose = False):
-        sorted_ub_set = H.sorted_ub_set # precomputed
-        len_ub_set = len(sorted_ub_set)
-        if(verbose):
-            print('set of distinct values: ',sorted_ub_set)
-            print("#distinct values: ", len(sorted_ub_set))
-            print('range: ',(sorted_ub_set[-1],sorted_ub_set[0]) )
-        if s >= len_ub_set:
-            yield sorted_ub_set[-1] + 1, sorted_ub_set[0]
-        else:
-            i = s
-            while i < len_ub_set:
-                yield sorted_ub_set[i] + 1, sorted_ub_set[i - s]
-                if i+s < len_ub_set:
-                    i += s
-                else:
-                    if i != len_ub_set - 1:
-                        yield sorted_ub_set[-1] + 1, sorted_ub_set[i]
-                    i += s
 
     # def generate_intervals(self, llb, lub, s = 1, verbose = False):
     #     min_llb = min([llb[u] for u in llb])
@@ -1062,6 +1121,118 @@ class HGDecompose():
         if (verbose):
             print("\n\nOutput")
             print(self.core)
+   
+    # Interval generator function (optimized) (s is a parameter)
+    def generate_intervals(self, H, s = 1, verbose = False):
+        sorted_ub_set = H.sorted_ub_set # precomputed
+        len_ub_set = len(sorted_ub_set)
+        if(verbose):
+            print('set of distinct values: ',sorted_ub_set)
+            print("#distinct values: ", len(sorted_ub_set))
+            print('range: ',(sorted_ub_set[-1],sorted_ub_set[0]) )
+        if s >= len_ub_set:
+            yield sorted_ub_set[-1] + 1, sorted_ub_set[0]
+        else:
+            i = s
+            while i < len_ub_set:
+                yield sorted_ub_set[i] + 1, sorted_ub_set[i - s]
+                if i+s < len_ub_set:
+                    i += s
+                else:
+                    if i != len_ub_set - 1:
+                        yield sorted_ub_set[-1] + 1, sorted_ub_set[i]
+                    i += s
+
+    def Core_decomp(self, H, lb1, ub1, setlb, bucket, inverse_bucket, verbose):
+        if (verbose):
+            # print("\n---------- Initial neighbors -------")
+            # for node in H.nodes():
+            #     print(node, H.neighbors(node))
+            # print()
+
+            print("\n---------- Initial bucket -------")
+            print(bucket)
+            print()
+
+        # start_loop_time = time()
+        print('-- ',lb1,ub1,'---')
+        for k in range(lb1, ub1 + 1):
+            while len(bucket.get(k, [])) != 0:
+                v = bucket[k].pop()  # get first element in the
+                if (verbose):
+                    print("k:", k, "node:", v, ' setlb[v]: ',setlb[v])
+
+                len_nbr_v = H.get_number_of_nbrs(v)
+                # if setlb[v] and len_nbr_v >= k:
+                if setlb[v]:
+                    len_nbr_v = max(len_nbr_v,k)
+                    if len_nbr_v not in bucket:
+                        # bucket[len_nbr_v] = set()
+                        bucket[len_nbr_v] = []
+                    # bucket[len_nbr_v].add(v)
+                    if v not in bucket[len_nbr_v]:
+                        bucket[len_nbr_v].append(v)
+
+                    # update new location of u
+                    inverse_bucket[v] = len_nbr_v
+                    setlb[v] = False
+                    if verbose:
+                        print('k=',k, ' Bucket: ',bucket)
+                else:
+                    # print('assigning core: ',v)
+                    self.core[v] = k
+                    # setlb[v] = True
+
+                    nbr_v = H.neighbors(v)
+                    if (verbose):
+                        print('removing ', v)
+                    start_subgraph_time = time()
+                    H.removeV_transform(v, verbose)  # Store.... + executation time..
+                    # H.removeV_transform2(v, verbose)
+                    self.subgraph_time += time() - start_subgraph_time
+                    self.num_subgraph_call += 1
+                    if (verbose):
+                        print('nbrs: ', nbr_v)
+                    for u in nbr_v:
+                        self.total_iteration += 1
+                        if not setlb[u]:
+                            # print('updating neighbor(v)', u)
+                            self.inner_iteration += 1
+                            start_neighborhood_call = time()
+                            len_neighbors_u = H.get_number_of_nbrs(u)
+                            self.neighborhood_call_time += time() - start_neighborhood_call
+                            self.num_neighborhood_computation += 1
+
+                            max_value = max(len_neighbors_u, k)
+                            if (verbose):
+                                print("max core between", k, 'and', len_neighbors_u, "is ", max_value)
+                                print("The location of", u, "is updated from", inverse_bucket[u], "to",
+                                      max_value)
+
+                            start_bucket_update = time()
+                            bucket[inverse_bucket[u]].remove(u)
+
+                            if max_value not in bucket:
+                                # bucket[max_value] = set()
+                                bucket[max_value] = []
+                            # bucket[max_value].add(u)
+                            if u not in bucket[max_value]:
+                                bucket[max_value].append(u)
+                            self.num_bucket_update += 1
+                            self.bucket_update_time += time() - start_bucket_update
+
+                            # update new location of u
+                            inverse_bucket[u] = max_value
+
+                            if (verbose):
+                                print("-------- Updated bucket ---------")
+                                print(bucket)
+                                print()
+                        else:
+                            if (verbose):
+                                print(u,': setLB = true ')
+
+        # self.loop_time = time() - start_loop_time
 
     def improved2NBR(self, H, s = 1, verbose = True):
         """ 
@@ -1106,9 +1277,20 @@ class HGDecompose():
             # print("\n -------- local lower bound --------")
             # print(llb)
 
+        Intervals = [] 
         gen = self.generate_intervals(H, s = s, verbose = verbose)
-        
-        self.init_time = time() - start_init_time
+        print("*** ",H.llb," ***")
+        for lower, upper in gen:
+            Intervals.append((lower,upper))
+        # # H.sorted_ub_set = sorted([3,5,10,15,20,25,30],reverse=True)
+        # for i in range(len(H.sorted_ub_set)):
+        #     if i==0:
+        #         Intervals.append((H.sorted_ub_set[i],H.sorted_ub_set[i]))
+        #     else:
+        #         Intervals.append((H.sorted_ub_set[i],H.sorted_ub_set[i-1]-1))
+        # if (verbose):
+        #     print(H.sorted_ub_set)
+        # self.init_time = time() - start_init_time
         # if(verbose):
         #     print('local upper bound: ')
         #     print(sorted(lub.items()))
@@ -1121,85 +1303,110 @@ class HGDecompose():
         inv_bucket = {}
         
         start_loop_time = time()
-        for lower, upper in gen:
+        # for lower, upper in gen:
+        for lower,upper in Intervals:
             if(verbose):
                 print("Inverval [%d,%d]"%(lower, upper))
-
+            # continue  
             V_kmin = [u for u in H.init_node_iterator() if lub[u] >= lower]
+            # start_subgraph_time = time()
+            H_kmin = H.strong_subgraph(V_kmin)
+            # self.subgraph_time += time() - start_subgraph_time
+            # self.num_subgraph_call += 1
             if(verbose):
-                print("Vkmin: ", V_kmin)
+                print("V_kmin: ", V_kmin)
+                print("H[V_kmin]: ", H_kmin)
             for u in V_kmin:
                 if u in self.core:
-                    max_val = max(lower-1, llb[u], self.core[u])
+                    # max_val = max(lower-1, min(llb[u], self.core[u]))
+                    max_val = max(lower, llb[u], self.core[u])
                 else:
-                    max_val = max(lower-1, llb[u])
+                    # max_val = max(lower-1, llb[u])
+                    max_val = max(lower, llb[u])
+
                 if max_val not in final_bucket:
-                    final_bucket[max_val] = set()
-                final_bucket[max_val].add(u)
+                    # final_bucket[max_val] = set()
+                    final_bucket[max_val] = []
+                # final_bucket[max_val].add(u)
+                if u not in final_bucket[max_val]:
+                    final_bucket[max_val].append(u)
                 inv_bucket[u] = max_val
                 setlb[u] = True
 
 
-            start_subgraph_time = time()
-            H_kmin = H.strong_subgraph(V_kmin)
-            self.subgraph_time += time() - start_subgraph_time
-            self.num_subgraph_call += 1
+            # self.Core_decomp(H_kmin, lower-1, upper, setlb, final_bucket, inv_bucket, verbose)
+            self.Core_decomp(H_kmin, lower, upper, setlb, final_bucket, inv_bucket, verbose)
+            if verbose:
+                print('Partial Core: ',self.core)
+                print("Bucket: ",final_bucket)
+                print("setLB: ",setlb)
+                print("----------------------")
+            # for k in range(lower-1, upper+1):
+            #     if(verbose):
+            #         print('k=',k)
+            #     while len(final_bucket.get(k, [])) != 0:
+            #         v = final_bucket[k].pop()
+            #         # core[v] = k
+            #         if setlb[v]:
+            #             start_neighborhood_call = time()
+            #             num_nbrs_v = H_kmin.get_number_of_nbrs(v)
+            #             self.neighborhood_call_time  += time() - start_neighborhood_call
+            #             self.num_neighborhood_computation += 1
 
-
-            for k in range(lower-1, upper+1):
-                while len(final_bucket.get(k, [])) != 0:
-                    v = final_bucket[k].pop()
-                    # core[v] = k
-                    if setlb[v]:
-                        start_neighborhood_call = time()
-                        num_nbrs_v = H_kmin.get_number_of_nbrs(v)
-                        self.neighborhood_call_time  += time() - start_neighborhood_call
-                        self.num_neighborhood_computation += 1
-
-                        if num_nbrs_v not in final_bucket:
-                            final_bucket[num_nbrs_v] = set()
-                        final_bucket[num_nbrs_v].add(v)
-                        inv_bucket[v] = num_nbrs_v
-                        setlb[v] = False
-                    else:
-                        if k >= lower:
-                            self.core[v] = k
-                            setlb[v] = True
+            #             if num_nbrs_v not in final_bucket:
+            #                 # final_bucket[num_nbrs_v] = set()
+            #                 final_bucket[num_nbrs_v] = []
+            #             # final_bucket[num_nbrs_v].add(v)
+            #             final_bucket[num_nbrs_v].append(v)
+            #             inv_bucket[v] = num_nbrs_v
+            #             setlb[v] = False
+            #         else:
+            #             if k >= lower:
+            #                 self.core[v] = k
+            #                 setlb[v] = True
                         
-                        nbrs_Hkmin = H_kmin.neighbors(v)
-                        start_subgraph_time = time()
+            #             nbrs_Hkmin = H_kmin.neighbors(v)
+            #             start_subgraph_time = time()
                         
-                        H_kmin.removeV_transform(v, False)
-                        self.subgraph_time += time() - start_subgraph_time
-                        self.num_subgraph_call += 1
+            #             H_kmin.removeV_transform(v, False)
+            #             self.subgraph_time += time() - start_subgraph_time
+            #             self.num_subgraph_call += 1
                         
 
-                        for u in nbrs_Hkmin:
-                            if not setlb[u]:
-                                start_neighborhood_call = time()
-                                len_neighbors_u = H_kmin.get_number_of_nbrs(u)
-                                self.neighborhood_call_time  += time() - start_neighborhood_call
-                                self.num_neighborhood_computation += 1
+            #             for u in nbrs_Hkmin:
+            #                 if not setlb[u]:
+            #                     start_neighborhood_call = time()
+            #                     len_neighbors_u = H_kmin.get_number_of_nbrs(u)
+            #                     self.neighborhood_call_time  += time() - start_neighborhood_call
+            #                     self.num_neighborhood_computation += 1
                         
-                                max_value = max(len_neighbors_u, k)
-                                start_bucket_update = time()
-                                if max_value != inv_bucket[u]:
-                                    if max_value not in final_bucket:
-                                        final_bucket[max_value] = set()
-                                    final_bucket[max_value].add(u)
-                                    prev_idx = inv_bucket[u]
-                                    final_bucket[prev_idx].remove(u)
-                                    inv_bucket[u] = max_value
-                                    self.num_bucket_update += 1
-                                self.bucket_update_time += time() - start_bucket_update
+            #                     max_value = max(len_neighbors_u, k)
+            #                     start_bucket_update = time()
+            #                     if max_value != inv_bucket[u]:
+            #                         if max_value not in final_bucket:
+            #                             # final_bucket[max_value] = set()
+            #                             final_bucket[max_value] = []
+            #                         # final_bucket[max_value].add(u)
+            #                         final_bucket[max_value].append(u)
+            #                         prev_idx = inv_bucket[u]
+            #                         final_bucket[prev_idx].remove(u)
+            #                         inv_bucket[u] = max_value
+            #                         self.num_bucket_update += 1
+            #                     self.bucket_update_time += time() - start_bucket_update
                         
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
-
+        
         if(verbose):
             print("\n\nOutput")
             print(self.core)
-    
+
+        # for k,val in final_bucket.items():
+        #     if len(val)!=0:
+        #         print(H)
+        #         print(final_bucket)
+        #         assert len(val) == 0 
+
     def parallel_compute_core(self, arg):
         # unpacking arguments
         H = self._working_H
@@ -1241,7 +1448,7 @@ class HGDecompose():
         
         for k in range(lower, upper + 1):
             while len(final_bucket.get(k, [])) != 0:
-                v = final_bucket[k].pop()
+                v = final_bucket[k].pop() 
                 # if (verbose):
                 #     print('removing: ',v)
                 _local_core[v] = k
@@ -1635,6 +1842,10 @@ class HGDecompose():
         self.execution_time = time() - start_execution_time
 
     def wrong_local_core(self, H, verbose = True):
+        """ 
+        Implementation of naive local algorithm without any core-correction. This algorithm emphasizes the importance of 
+        core-correction in the context of hypergraph core-decomposition
+        """
         if verbose:
             print('tau: ', H.get_M())
 
@@ -1666,8 +1877,11 @@ class HGDecompose():
             k+=1
 
     def improved_local_core_rev(self, H, verbose = True):
-        """ Not an improvement really!! 
-        Vertices popped in Decreasing order of hindex from heap .
+        """ 
+        A supposedly faster variant of Local core. 
+        [This reduces the number of global iterations, but overall is not fast. Because the bottleneck is not the global #iteration]
+        Here we LCCSAT & Core-correct vertices in descending order of their (current) h-index value. [Vertices popped in Decreasing order of hindex from heap .]
+        Previously we didnot take order of core-correction into consideration. 
         """
         if verbose:
             print('tau: ', H.get_M())

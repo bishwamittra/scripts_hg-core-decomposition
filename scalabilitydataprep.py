@@ -5,28 +5,43 @@ import time
 from matplotlib import pyplot as plt
 # random.seed(10)
 
-def gen_nested_hypergraph():
-    percent = 0.8
-    num_subgraphs = 10
+def gen_nested_hypergraph(num_subgraphs = 10):
+    delete_percent = 1.0/num_subgraphs
+    
     name = "dblp"
-    input_H = get_hg(name)
+    input_H = get_hg(name) 
     pathstring = "/Users/nus/hg-core-decomposition/data/datasets/scalability/"
 
     sub_hg_edges = {}
+    M = 0
+    eids = []
     for e_id, hyperedge in input_H.edge_eid_iterator():
         sub_hg_edges[e_id] = tuple(hyperedge)
+        M+=1
+        eids.append(e_id)
+
+    todelete = int(M * delete_percent)
     writeHypergraph(sub_hg_edges, os.path.join(pathstring,name+"_"+str(0)+".hyp"))
     print("0: NumEdge: ", len(sub_hg_edges))
-    del input_H
-    for i in range(num_subgraphs):
-        M = len(sub_hg_edges)
-        eids = list(sub_hg_edges.keys())
-        sample = random.sample(eids, k=round(M * percent))
-        for e_id in eids: 
-            if e_id not in sample:
+    random.shuffle(eids)
+    del input_H 
+    # del sub_hg_edges
+
+    for i in range(num_subgraphs-1):
+        # M = len(sub_hg_edges)
+        print(i,' - ',todelete)
+        # eids = list(sub_hg_edges.keys())
+        # sample = random.sample(eids, k=round(M-todelete))
+        # for e_id in eids: 
+        #     if e_id not in sample:
+        #         del sub_hg_edges[e_id]
+        for e_id in eids[-todelete:]:
+            # e_id = eids[i]
+            if e_id in sub_hg_edges:
                 del sub_hg_edges[e_id]
         print(str(i+1)+ ": NumEdge: ", len(sub_hg_edges))
         writeHypergraph(sub_hg_edges, os.path.join(pathstring,name+"_"+str(i+1)+".hyp"))
+        todelete = todelete + int(M*delete_percent)
     
 def getrepr(edge):
     edge_str = ",".join([str(node) for node in edge])
@@ -270,4 +285,5 @@ def plot_two_dataset(hg, rhg):
 # # print("Final hypergraph: ")
 # # print(hg)
 
-gen_Random_zipf_H0("pref_80000", max_num_edges = 100000, seed = 1, parallel_edge_allowed = False, write = True)
+# gen_Random_zipf_H0("pref_80000", max_num_edges = 100000, seed = 1, parallel_edge_allowed = False, write = True)
+gen_nested_hypergraph()

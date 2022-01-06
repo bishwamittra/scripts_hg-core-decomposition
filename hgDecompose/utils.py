@@ -6,6 +6,12 @@ from hgDecompose.IncidenceRep import HypergraphL
 import random
 import heapq
 
+scalability_datasets = ['enron_'+str(i) for i in range(10)] + ['dblp_'+str(i) for i in range(10)] + ['pref_'+str(i) for i in range(10)]
+scal_dataset_to_filename = {}
+for i in range(10):
+    scal_dataset_to_filename['dblp_'+str(i)] = 'data/datasets/scalability/dblp_'+str(i)+'.hyp'
+    scal_dataset_to_filename['enron_'+str(i)]= 'data/datasets/scalability/enron_'+str(i)+'.hyp' 
+    scal_dataset_to_filename['pref_'+str(i)]= 'data/datasets/scalability/pref_'+str(i)+'.hyp' 
 
 def strong_subgraph(H, vertex_set):
     import sys
@@ -109,7 +115,7 @@ def get_hg_hnx(dataset):
 
         H = hnx.Hypergraph(dic)
 
-    elif(dataset in ['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "congress", "contact", "dblp","amazon"]):
+    elif(dataset in scalability_datasets+['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "congress", "contact", "dblp","amazon"]):
 
         # file location
         dataset_to_filename = {
@@ -128,7 +134,8 @@ def get_hg_hnx(dataset):
 
         }
 
-        
+        for key,val in scal_dataset_to_filename.items():
+            dataset_to_filename[key] = val 
         # split by
         dataset_to_split = {
             "enron" : ",",
@@ -178,7 +185,7 @@ def get_hg(dataset):
 
         H = Hypergraph(dic)
 
-    elif(dataset in ['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "4_sim", "5_sim", "pref", "pref_20000","pref_40000","pref_60000","pref_80000","pref_100000","congress", "contact","dblp", "amazon"]):
+    elif(dataset in scalability_datasets+['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "4_sim", "5_sim", "pref", "pref_20000","pref_40000","pref_60000","pref_80000","pref_100000","congress", "contact","dblp", "amazon","gowalla","weeplaces"]):
 
         # file location
         dataset_to_filename = {
@@ -202,10 +209,14 @@ def get_hg(dataset):
              "pref_40000": "data/datasets/synthetic/pref_40000_3_1_simple.hyp",
              "pref_60000": "data/datasets/synthetic/pref_60000_3_1_simple.hyp",
              "pref_80000": "data/datasets/synthetic/pref_80000_3_1_simple.hyp",
-             "pref_100000": "data/datasets/synthetic/pref_100000_3_1_simple.hyp"
+             "pref_100000": "data/datasets/synthetic/pref_100000_3_1_simple.hyp",
+             'gowalla': 'data/datasets/gowalla/gowalla.hyp',
+             'weeplaces': 'data/datasets/weeplaces/weeplaces.hyp'
         }
 
-        
+        for key,val in scal_dataset_to_filename.items():
+            dataset_to_filename[key] = val 
+
         # # split by
         # dataset_to_split = {
         #     "enron" : ",",
@@ -257,7 +268,7 @@ def get_localhg(dataset):
 
         H = HypergraphL(dic)
 
-    elif(dataset in ['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "4_sim", "5_sim", "pref","pref_20000","pref_40000","pref_60000","pref_80000","pref_100000", "congress", "contact","dblp","amazon"]):
+    elif(dataset in scalability_datasets+['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "4_sim", "5_sim", "pref","pref_20000","pref_40000","pref_60000","pref_80000","pref_100000", "congress", "contact","dblp","amazon","gowalla","weeplaces"]):
 
         # file location
         dataset_to_filename = {
@@ -281,10 +292,14 @@ def get_localhg(dataset):
              "pref_40000": "data/datasets/synthetic/pref_40000_3_1_simple.hyp",
              "pref_60000": "data/datasets/synthetic/pref_60000_3_1_simple.hyp",
              "pref_80000": "data/datasets/synthetic/pref_80000_3_1_simple.hyp",
-             "pref_100000": "data/datasets/synthetic/pref_100000_3_1_simple.hyp"
+             "pref_100000": "data/datasets/synthetic/pref_100000_3_1_simple.hyp",
+             'gowalla': 'data/datasets/gowalla/gowalla.hyp',
+             'weeplaces': 'data/datasets/weeplaces/weeplaces.hyp'
         }
 
-        
+        for key,val in scal_dataset_to_filename.items():
+            dataset_to_filename[key] = val 
+
         # split by
         # dataset_to_split = {
         #     "enron" : ",",

@@ -45,6 +45,11 @@ class Hypergraph:
 
         self.init_nodes = sorted(self.init_nodes)
         
+        # self.compute_Bounds()
+        self.compute_Bounds2()
+
+    def compute_Bounds2(self):
+        """ Computes Local Upper Bound differently from compute_Bounds() """
         # print('Global-local ub')
         # Computing global upper and lower bounds
         self.glb = math.inf
@@ -54,19 +59,14 @@ class Hypergraph:
         # # Computing local upper bounds
         self.lub = {}
         
-        # Auxiliary variables to assist computation of ub2
-        # _inv_bucket = {}
-        # _bucket = {}
-        # self.sorted_ub_set = set() # || => upper bound for param_s
+        self.sorted_ub_set = set() # || => upper bound for param_s
         for v in self.node_iterator():
             len_neighbors_v = self.init_nbrsize[v]
             self.glb = min(self.glb,len_neighbors_v)
             self.gub = max(self.gub, len_neighbors_v)
-        #     _inv_bucket[v] = len_neighbors_v
-        #     ## print(node, neighbors)
-        #     if len_neighbors_v not in _bucket:
-        #         _bucket[len_neighbors_v] = set()
-        #     _bucket[len_neighbors_v].add(v)
+            self.lub[v] = len_neighbors_v
+            self.sorted_ub_set.add(len_neighbors_v)
+
         # ## print('---- ',self.glb, self.gub)
         # for k in range(self.glb, self.gub+1):
         #     while len(_bucket.get(k, [])) != 0:
@@ -93,10 +93,62 @@ class Hypergraph:
             self.llb[v] = max(_max, self.glb)
             _min_llb = min(_min_llb, self.llb[v])
 
-        # self.sorted_ub_set.add(_min_llb - 1)
-        # self.sorted_ub_set = sorted(list(self.sorted_ub_set), reverse=True)
-        # del _bucket
-        # del _inv_bucket
+        self.sorted_ub_set.add(_min_llb - 1)
+        self.sorted_ub_set = sorted(list(self.sorted_ub_set), reverse=True)
+
+    def compute_Bounds(self):
+        # print('Global-local ub')
+        # Computing global upper and lower bounds
+        self.glb = math.inf
+        self.gub = -math.inf
+        # Computing local lower bounds
+        # self.precomputedlb2 = {}
+        # # Computing local upper bounds
+        self.lub = {}
+        
+        # Auxiliary variables to assist computation of ub2
+        _inv_bucket = {}
+        _bucket = {}
+        self.sorted_ub_set = set() # || => upper bound for param_s
+        for v in self.node_iterator():
+            len_neighbors_v = self.init_nbrsize[v]
+            self.glb = min(self.glb,len_neighbors_v)
+            self.gub = max(self.gub, len_neighbors_v)
+            _inv_bucket[v] = len_neighbors_v
+            ## print(node, neighbors)
+            if len_neighbors_v not in _bucket:
+                _bucket[len_neighbors_v] = set()
+            _bucket[len_neighbors_v].add(v)
+        ## print('---- ',self.glb, self.gub)
+        for k in range(self.glb, self.gub+1):
+            while len(_bucket.get(k, [])) != 0:
+                v = _bucket[k].pop()
+                self.lub[v] = k
+                self.sorted_ub_set.add(k) # add computed local upper bound to ub_set
+                for u in self.init_nbr[v]:
+                    if u not in self.lub:
+                        max_value = max(_inv_bucket[u] - 1, k)
+                        _bucket[_inv_bucket[u]].remove(u)
+                        if(max_value not in _bucket):
+                            _bucket[max_value] = set()
+                        _bucket[max_value].add(u)
+                        _inv_bucket[u] = max_value
+
+        
+        self.llb = {}
+        _min_llb = math.inf
+        # Local lower bound computation
+        for v in self.node_iterator():
+            _max = -math.inf
+            for e_id in self.inc_dict[v]:
+                _max = max(_max, len(self.get_edge_byindex(e_id)) - 1)
+            self.llb[v] = max(_max, self.glb)
+            _min_llb = min(_min_llb, self.llb[v])
+
+        self.sorted_ub_set.add(_min_llb - 1)
+        self.sorted_ub_set = sorted(list(self.sorted_ub_set), reverse=True)
+        del _bucket
+        del _inv_bucket
 
     def get_init_nbr(self, v):
         return self.init_nbr[v]
@@ -630,3 +682,28 @@ class Hypergraph:
 
     def __str__(self):
         return ",".join([str(i) for i in self.edge_iterator()])
+
+    def initBiparite(self):
+        self.vtoEdgeId = {} # v1 => [e1,e2,...]
+        self.eidtov = {} # e1 => [v1,v2,..]
+        for eid, edge in self.edge_eid_iterator():
+            self.eidtov[eid] = list(edge)
+            for v in edge:
+                if v not in self.vtoEdgeId:
+                    self.vtoEdgeId[v] = [] 
+                self.vtoEdgeId[v].append(eid)
+
+    def bipartiteDeleteu(self, u):
+        for eid in self.vtoEdgeId[u]:
+            if eid in self.eidtov:
+                if u in self.eidtov[eid]:
+                    self.eidtov[eid].remove(u)
+        del self.vtoEdgeId[u]
+
+    def getDist2nbr(self, u):
+        s = set()
+        for eid in self.vtoEdgeId.get(u,[]):
+            for v in self.eidtov.get(eid,[]):
+                if v!=u:
+                    s.add(v)
+        return sorted(list(s)) 

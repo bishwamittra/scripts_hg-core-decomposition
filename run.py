@@ -185,8 +185,6 @@ assert input_H is not None
 
 
 
-
-
 for iteration in range(args.iterations):
     H = deepcopy(input_H)
     entry = {}
@@ -250,7 +248,12 @@ for iteration in range(args.iterations):
         hgDecompose.improved_local_core(H, verbose=args.verbose)
     
     elif(args.algo == "opt_local_core"):
-        hgDecompose.opt_local_core(H, verbose=args.verbose, store_core_information=True, filename="data/output/"+args.dataset+"_local_core.csv", info_dic={'algo' : args.algo, 'dataset' : args.dataset, 'num_threads' : args.nthreads, 'outer iteration' : iteration})
+        # Run local_core algorithm while storing core-correction ammount and other auxiliary information.
+        # hgDecompose.opt_local_core(H, verbose=args.verbose, store_core_information=True, filename="data/output/"+args.dataset+"_local_core.csv", info_dic={'algo' : args.algo, 'dataset' : args.dataset, 'num_threads' : args.nthreads, 'outer iteration' : iteration})
+        
+        # Run local_core algorithm without storing other auxiliary information.
+        hgDecompose.opt_local_core(H, verbose=args.verbose, store_core_information=False)
+
 
     # elif(args.algo == "improved_local_core_bst"):
     #     hgDecompose.improved_local_core(H, verbose=args.verbose, bst = True)
@@ -292,13 +295,17 @@ for iteration in range(args.iterations):
     result = result.append(entry, ignore_index=True)
     # print('result: ',result['num subgraph call'].values[0],',',result['subgraph computation time'].values[0])
     # print('tolist(): ',result.columns.tolist())
+    # print("iter: ",iteration)
     if(args.verbose and iteration==0): 
         print(entry)
         print("\n")
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")
-    # result.to_csv('data/output/result.csv', header=False,
+    # print(result)
+    result.to_csv('data/output/scal_result.csv', header=False,
+                            index=False, mode='a')
+    # result.to_csv('data/output/result_temp.csv', header=False,
     #                         index=False, mode='a')
 
 
