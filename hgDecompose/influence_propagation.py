@@ -1,5 +1,7 @@
 import random
 import numpy as np
+from copy import deepcopy
+
 
 
 def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100,  p = 0.5, num_iterations = 100, verbose=True):
@@ -29,28 +31,42 @@ def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100, 
                 result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0])
             
 
-    return result, None
+    return result
 
 
 def run_intervention_exp(H, core):
-    print(core)
+    # print(core)
 
     max_core_number = -1
     for v in core:
         if(max_core_number < core[v]):
             max_core_number = core[v]
         
-    print(max_core_number)
+    # print(max_core_number)
 
-    vertices_with_max_core = []
+    nodes_with_max_core = []
     for v in core:
         if(core[v] == max_core_number):
-            vertices_with_max_core.append(v)
+            nodes_with_max_core.append(v)
         
-    print(vertices_with_max_core)
+    
+    all_nodes = H.nodes()
+    result = {}
+    # print(all_nodes)
+    for eid in ['nill'] +  H.get_stronglyinduced_edgeIds(nodes_with_max_core):
+    # for eid in [3,4]:
+        temp_H = deepcopy(H)
+        if(eid != "nill"):
+            temp_H.del_edge(eid)
+        temp_core = {}
+        for node in temp_H.nodes():
+            temp_core[node] = core[node]
+        # print(eid, H.get_edge_byindex(eid), temp_H.nodes(), len(temp_H.nodes()))
+        result[eid] = propagate_for_all_vertices(temp_H, temp_core, verbose=False)
+    
+    # print(result)
 
-    sub_H = H.strong_subgraph(vertices_with_max_core)
-    print(sub_H.edges())
+    return result
 
 
 
@@ -72,7 +88,7 @@ def propagate_for_random_seeds(H, core, seed_size = 1000, p = 0.5, num_iteration
 
     # print(result)
 
-    return None, result
+    return result
 
 
 

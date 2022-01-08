@@ -94,16 +94,19 @@ if(args.sir or args.sir_exp2 or args.sir_exp3):
         entry['exp'] = "sir_exp3"
     else:
         raise NotImplementedError()
-        
+
+    entry['result'] = None
+    entry['timestep_results'] = None  
+    entry['intervention_results'] = None 
     
     if(args.sir):
-        entry['result'], entry['timestep_results'] = propagate_for_all_vertices(H, core_base, p = float(args.prob), verbose=args.verbose)
+        entry['result'] = propagate_for_all_vertices(H, core_base, p = float(args.prob), verbose=args.verbose)
     elif(args.sir_exp2):
-        entry['result'], entry['timestep_results'] = propagate_for_random_seeds(H, core_base, p = float(args.prob), verbose=args.verbose)
+        entry['timestep_results'] = propagate_for_random_seeds(H, core_base, p = float(args.prob), verbose=args.verbose)
     elif(args.sir_exp3):
         # entry['result'], entry['timestep_results'] = propagate_for_random_seeds(H, core_base, p = float(args.prob), verbose=args.verbose)
-        run_intervention_exp(H, core_base)
-        print()
+        entry['intervention_results'] = run_intervention_exp(H, core_base)
+        
 
     result = pd.DataFrame()
     result = result.append(entry, ignore_index=True)
