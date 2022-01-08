@@ -31,6 +31,29 @@ def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100, 
 
     return result, None
 
+
+def run_intervention_exp(H, core):
+    print(core)
+
+    max_core_number = -1
+    for v in core:
+        if(max_core_number < core[v]):
+            max_core_number = core[v]
+        
+    print(max_core_number)
+
+    vertices_with_max_core = []
+    for v in core:
+        if(core[v] == max_core_number):
+            vertices_with_max_core.append(v)
+        
+    print(vertices_with_max_core)
+
+    sub_H = H.strong_subgraph(vertices_with_max_core)
+    print(sub_H.edges())
+
+
+
 def propagate_for_random_seeds(H, core, seed_size = 1000, p = 0.5, num_iterations = 100, verbose = False):
 
     # print(core)
