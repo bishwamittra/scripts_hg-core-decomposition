@@ -14,7 +14,8 @@ args = parser.parse_args()
 # algo_list = ['naive_nbr', 'improved_nbr']
 # algo_list = ['naive_nbr','improved_nbr_simple']
 # algo_list = ['naive_nbr']
-algo_list = ['improved_nbr_simple']
+# algo_list = ['improved_nbr_simple']
+algo_list = ['naive_degree']
 # algo_list = ['bst_local_core']
 # algo_list = ['improved_local_core','iterative_local_core', 'naive_nbr', 'improved_nbr_simple']
 # algo_list = ['opt_local_core','improved_nbr_simple']
@@ -41,8 +42,8 @@ else:
     # dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact', 'congress','dblp']
     # dataset_list = ['pref']
     # dataset_list = ['pref_20000','pref_40000','pref_60000','pref_80000']
-    # dataset_list = ['gowalla']
-    dataset_list = ['weeplaces']
+    dataset_list = ['gowalla']
+    # dataset_list = ['weeplaces']
 n_thread_list = [1,2,4,8,16,32,64]
 # param_s_dict = {
 #                 'syn':(-1,3), 'bin_1':(25, 33), 'bin_2':(184, 193), 'bin_4':(19,24),
