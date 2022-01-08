@@ -1,6 +1,7 @@
 import math
 import itertools
-import random 
+import random
+from typing import final 
 
 class Hypergraph:
     """ 
@@ -169,6 +170,24 @@ class Hypergraph:
             self.degree_dict[v] = self.degree_dict.get(v, 0) + 1  # degree update
 
         self.i += _len
+
+    def get_stronglyinduced_edgeIds(self, vertex_list):
+        """ Returns the list of edge_ids strongly induced by vertex_list"""
+        temp_H = self.strong_subgraph(vertex_list)
+        assert isinstance(temp_H, Hypergraph)
+        return [e_id for e_id in temp_H.e_indices.keys()]
+
+    def del_edge(self, e_id):
+        """ Delete an edge given a set of nodes e."""
+        if e_id not in self.e_indices: # If edge e_id does not exist in the hypergraph, do nothing.
+            return 
+        for v in self.get_edge_byindex(e_id):
+            self.inc_dict[v].remove(e_id) # Remove e_id from v's incident edge list.
+            if len(self.inc_dict[v])==0: # After deleting e_id there is no edge incident on v anymore. Then del v
+                del self.inc_dict[v]
+            self.degree_dict[v] -= 1 # decrease degree of v by 1
+        
+        del self.e_indices[e_id]
 
     def hasEdge(self, e_nodes):
         Exists = False 
