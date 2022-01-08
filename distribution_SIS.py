@@ -7,9 +7,12 @@ parser.add_argument("--thread", help="index of thread", default=-1, type=int)
 parser.add_argument("--max_thread", help="maximum number of thread", default=1, type=int)
 args = parser.parse_args()
 
-algo_list = ['naive_nbr', 'naive_degree']
-dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact', 'congress']
-exps = ['sir', 'sir_exp2']
+# algo_list = ['naive_nbr', 'naive_degree']
+algo_list = ['naive_nbr']
+# dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact', 'congress']
+dataset_list = ['enron']
+# exps = ['sir', 'sir_exp2', 'sir_exp3']
+exps = ['sir_exp3']
 
 # all combination of experiments
 configurations = []
@@ -28,7 +31,7 @@ for i, configuration in enumerate(configurations):
               " --algo " + algo + \
               " --dataset " + dataset + \
               " --" + exp
-        # print(cmd) 
+        print(cmd) 
         os.system(cmd) 
 
 # TO DO: ignore assertion -O

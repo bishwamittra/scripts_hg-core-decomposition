@@ -116,9 +116,10 @@ if(args.sir or args.sir_exp2 or args.sir_exp3):
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")
-    result.to_csv('data/output/propagation_result.csv', header=False,
+    # result.to_csv('data/output/propagation_result.csv', header=False,
+    #                         index=False, mode='a')
+    result.to_csv('data/output/propagation_result_exp3.csv', header=False,
                             index=False, mode='a')
-
     quit()
 
 # # Pandemic propagation
