@@ -22,29 +22,38 @@ def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100, 
 
     distinct_core_numbers.sort(reverse=True)
 
-    #TODO: Parallelize this loop
-    core_v_list = [] 
-    core_numbers = []
     for core_number in distinct_core_numbers[:top_k]:
         for v in random.choices(core_to_vertex_map[core_number], k=num_vertex_per_core):
-            core_v_list.append((H,v,p,num_iterations,verbose))
-            core_numbers.append(core_number)
+            if(core_number not in result):
+                result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0]]
+            else:
+                result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0])
+            
+    #TODO: Parallelize this loop
+    # core_v_list = [] 
+    # core_numbers = []
+    # for core_number in distinct_core_numbers[:top_k]:
+    #     for v in random.choices(core_to_vertex_map[core_number], k=num_vertex_per_core):
+    #         core_v_list.append((H,v,p,num_iterations,verbose))
+    #         core_numbers.append(core_number)
     
-    with Pool(processes=8) as pool:
-        pool_results = []
-        for x in pool.map(propagate, core_v_list):
-            pool_results.append(x[0])
-            
-    for i, core_number in enumerate(core_numbers):
-        if(core_number not in result):
-            result[core_number] = pool_results[i]
-        else:
-            result[core_number].append(pool_results[i])
-        # if(core_number not in result):
-        #     result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0]]
-        # else:
-        #     result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0])
-            
+    
+    # with Pool(processes=8) as pool:
+    #     pool_results = pool.map(propagate, core_v_list)
+    #     # for x in pool.map(propagate, core_v_list):
+    #     #     pool_results.append(x[0])
+    #     pool.join()
+
+    # for i, core_number in enumerate(core_numbers):
+    #     if(core_number not in result):
+    #         result[core_number] = pool_results[i][0]
+    #     else:
+    #         result[core_number].append(pool_results[i][0])
+    #     # if(core_number not in result):
+    #     #     result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0]]
+    #     # else:
+    #     #     result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0])
+
 
     return result
 
