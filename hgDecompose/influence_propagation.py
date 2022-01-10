@@ -60,7 +60,7 @@ def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100, 
 
 def run_intervention_exp(H, core, p = 0.5, verbose = False):
     # print(core)
-
+    deleted_ids = [2693,2804,3865,1547,2102,2960,2537,3446,2120,2673]
     max_core_number = -1
     for v in core:
         if(max_core_number < core[v]):
