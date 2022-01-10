@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from copy import deepcopy
-
+from multiprocessing import Pool
 
 
 def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100,  p = 0.5, num_iterations = 100, verbose=True):
@@ -22,19 +22,34 @@ def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100, 
 
     distinct_core_numbers.sort(reverse=True)
 
-
+    #TODO: Parallelize this loop
+    core_v_list = [] 
+    core_numbers = []
     for core_number in distinct_core_numbers[:top_k]:
         for v in random.choices(core_to_vertex_map[core_number], k=num_vertex_per_core):
-            if(core_number not in result):
-                result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0]]
-            else:
-                result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0])
+            core_v_list.append((H,v,p,num_iterations,verbose))
+            core_numbers.append(core_number)
+    
+    with Pool(processes=8) as pool:
+        pool_results = []
+        for x in pool.map(propagate, core_v_list):
+            pool_results.append(x[0])
+            
+    for i, core_number in enumerate(core_numbers):
+        if(core_number not in result):
+            result[core_number] = pool_results[i]
+        else:
+            result[core_number].append(pool_results[i])
+        # if(core_number not in result):
+        #     result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0]]
+        # else:
+        #     result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0])
             
 
     return result
 
 
-def run_intervention_exp(H, core):
+def run_intervention_exp(H, core, p = 0.5, verbose = False):
     # print(core)
 
     max_core_number = -1
@@ -53,7 +68,12 @@ def run_intervention_exp(H, core):
     all_nodes = H.nodes()
     result = {}
     # print(all_nodes)
-    for eid in ['nill'] +  H.get_stronglyinduced_edgeIds(nodes_with_max_core):
+    strongly_induced_eids = H.get_stronglyinduced_edgeIds(nodes_with_max_core)
+    if verbose:
+        print('# potential edges to delete: ',len(strongly_induced_eids))
+    # for eid in ['nill'] +  strongly_induced_eids:
+    for eid in ['nill'] + random.choices(strongly_induced_eids, k = 10):
+        print(eid)
     # for eid in [3,4]:
         temp_H = deepcopy(H)
         if(eid != "nill"):
@@ -62,7 +82,7 @@ def run_intervention_exp(H, core):
         for node in temp_H.nodes():
             temp_core[node] = core[node]
         # print(eid, H.get_edge_byindex(eid), temp_H.nodes(), len(temp_H.nodes()))
-        result[eid] = propagate_for_all_vertices(temp_H, temp_core, verbose=False)
+        result[eid] = propagate_for_all_vertices(temp_H, temp_core, p = p, verbose=verbose)
     
     # print(result)
 
@@ -109,33 +129,34 @@ def propagate(H, starting_vertex, p = 0.5, num_iterations = 10, verbose=True):
     for i in range(num_iterations):
         if(verbose):
             print('\n\n\nIteration:', i)
-            print("infected:", infected)
-            print("recovered:", recovered)
-            print("suscepted:", suscepted)
+            # print("infected:", infected)
+            # print("recovered:", recovered)
+            # print("suscepted:", suscepted)
             print()
         
         if(len(infected) == 0):
-            if(verbose):
-                print("No more propagation is possible")
+            # if(verbose):
+            #     print("No more propagation is possible")
             break
         
         
         new_infected = []
         new_recovered = []    
         for v in infected:
-            if(verbose):
-                print("\nPorpagating for", v)
+            # if(verbose):
+            #     print("\nPorpagating for", v)
             for u in H.neighbors(v):
                 if(u in suscepted):
                     if(random.random() <= p):
-                        if(verbose):
-                            print(v, "->", u)
+                        # if(verbose):
+                        #     print(v, "->", u)
                         new_infected.append(u)
                         timestep_of_infection[u] = i + 1
                         suscepted.remove(u)
                     else:
-                        if(verbose):
-                            print(v, "->", u, "not propagated")
+                        # if(verbose):
+                        #     print(v, "->", u, "not propagated")
+                        pass
                 # else:
                 #     if(verbose):
                 #         print(u, "is already either infected or recovered")

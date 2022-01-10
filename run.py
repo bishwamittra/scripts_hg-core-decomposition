@@ -105,7 +105,7 @@ if(args.sir or args.sir_exp2 or args.sir_exp3):
         entry['timestep_results'] = propagate_for_random_seeds(H, core_base, p = float(args.prob), verbose=args.verbose)
     elif(args.sir_exp3):
         # entry['result'], entry['timestep_results'] = propagate_for_random_seeds(H, core_base, p = float(args.prob), verbose=args.verbose)
-        entry['intervention_results'] = run_intervention_exp(H, core_base)
+        entry['intervention_results'] = run_intervention_exp(H, core_base, p = float(args.prob),verbose = args.verbose)
         
 
     result = pd.DataFrame()
@@ -213,7 +213,7 @@ for iteration in range(args.iterations):
         hgDecompose.improvedNBR(H, verbose=args.verbose)
 
     elif(args.algo == "improved_nbr_simple"):
-        hgDecompose.improvedNBR_simplified(H, verbose=args.verbose)
+        hgDecompose.improvedNBR_simplified(H, verbose=False)
         
     elif(args.algo == "naive_degree"):
         hgDecompose.naiveDeg(H, verbose=args.verbose)
@@ -310,16 +310,16 @@ for iteration in range(args.iterations):
     # print('tolist(): ',result.columns.tolist())
     # print("iter: ",iteration)
     if(args.verbose and iteration==0): 
-        print(entry)
+        # print(entry)
         print("\n")
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")
     # print(result)
-    result.to_csv('data/output/scal_result.csv', header=False,
-                            index=False, mode='a')
-    # result.to_csv('data/output/result_temp.csv', header=False,
+    # result.to_csv('data/output/scal_result.csv', header=False,
     #                         index=False, mode='a')
+    result.to_csv('data/output/result_temp.csv', header=False,
+                            index=False, mode='a')
 
 
 

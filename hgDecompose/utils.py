@@ -210,7 +210,7 @@ def get_hg(dataset):
              "pref_60000": "data/datasets/synthetic/pref_60000_3_1_simple.hyp",
              "pref_80000": "data/datasets/synthetic/pref_80000_3_1_simple.hyp",
              "pref_100000": "data/datasets/synthetic/pref_100000_3_1_simple.hyp",
-             'gowalla': 'data/datasets/gowalla/gowalla.hyp',
+             'gowalla': 'data/datasets/gowalla/gowallasimple.hyp',
              'weeplaces': 'data/datasets/weeplaces/weeplaces.hyp'
         }
 
@@ -293,7 +293,7 @@ def get_localhg(dataset):
              "pref_60000": "data/datasets/synthetic/pref_60000_3_1_simple.hyp",
              "pref_80000": "data/datasets/synthetic/pref_80000_3_1_simple.hyp",
              "pref_100000": "data/datasets/synthetic/pref_100000_3_1_simple.hyp",
-             'gowalla': 'data/datasets/gowalla/gowalla.hyp',
+             'gowalla': 'data/datasets/gowalla/gowallasimple.hyp',
              'weeplaces': 'data/datasets/weeplaces/weeplaces.hyp'
         }
 
