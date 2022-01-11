@@ -80,20 +80,61 @@ def run_intervention_exp(H, core, p = 0.5, verbose = False):
     strongly_induced_eids = H.get_stronglyinduced_edgeIds(nodes_with_max_core)
     if verbose:
         print('# potential edges to delete: ',len(strongly_induced_eids))
-    # for eid in ['nill'] +  strongly_induced_eids:
-    for eid in ['nill'] + random.choices(strongly_induced_eids, k = 10):
-        print(eid)
-    # for eid in [3,4]:
-        temp_H = deepcopy(H)
-        if(eid != "nill"):
+    # # for eid in ['nill'] +  strongly_induced_eids:
+    # for eid in ['nill'] + random.choices(strongly_induced_eids, k = 10):
+    #     print(eid)
+    # # for eid in [3,4]:
+    #     temp_H = deepcopy(H)
+    #     if(eid != "nill"):
+    #         temp_H.del_edge(eid)
+    #     temp_core = {}
+    #     for node in temp_H.nodes():
+    #         temp_core[node] = core[node]
+    #     # print(eid, H.get_edge_byindex(eid), temp_H.nodes(), len(temp_H.nodes()))
+    #     result[eid] = propagate_for_all_vertices(temp_H, temp_core, p = p, verbose=verbose)
+    
+    # print(result)
+
+    # Top-k edge-deletion intervention strategy. 
+    temp_core = {}
+    for node in H.nodes():
+        temp_core[node] = core[node]
+        # print(eid, H.get_edge_byindex(eid), temp_H.nodes(), len(temp_H.nodes()))
+    result['nill'] = propagate_for_all_vertices(H, temp_core, p = p, verbose=verbose)
+    
+    max_e = 15
+    todelete = [] 
+    for eid in random.choices(strongly_induced_eids, k = max_e):
+        todelete.append(eid)
+    
+    print('will delete: ',todelete)
+    temp_H = deepcopy(H)
+    for i in range(0,max_e,5):
+        for eid in todelete[i:i+5]:
+            print('deleting ',eid)
             temp_H.del_edge(eid)
         temp_core = {}
         for node in temp_H.nodes():
-            temp_core[node] = core[node]
-        # print(eid, H.get_edge_byindex(eid), temp_H.nodes(), len(temp_H.nodes()))
-        result[eid] = propagate_for_all_vertices(temp_H, temp_core, p = p, verbose=verbose)
+            temp_core[node] = core[node]   
+        result['top'+str(i+5)] = propagate_for_all_vertices(temp_H, temp_core, p = p, verbose=verbose)
+
+    # Top k% edge-deletion intervention strategy TODO
+    #     max_e = int(len(temp_core)* 0.10)
+    # print('will delete 10% = ',max_e,' edges')
+    # todelete = [] 
+    # for eid in random.choices(strongly_induced_eids, k = max_e):
+    #     todelete.append(eid)
     
-    # print(result)
+    # print('will delete: ',todelete)
+    # temp_H = deepcopy(H)
+    # for i in range(1,10):
+    #     for eid in todelete[i:i+5]:
+    #         print('deleting ',eid)
+    #         temp_H.del_edge(eid)
+    #     temp_core = {}
+    #     for node in temp_H.nodes():
+    #         temp_core[node] = core[node]   
+    #     result['top'+str(i+5)] = propagate_for_all_vertices(temp_H, temp_core, p = p, verbose=verbose)
 
     return result
 
