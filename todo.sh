@@ -16,7 +16,7 @@ ulimit -v 16000000
 
 
 # multithread
-# python -u distribution.py --thread $mythread --max_thread $numthreads > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
+python -u distribution.py --thread $mythread --max_thread $numthreads > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
 
 # multithread single iteration
 # python -u distribution.py --iter 1 --thread $mythread --max_thread $numthreads > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
@@ -29,6 +29,6 @@ ulimit -v 16000000
 # python -u distribution.py > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
 
 # multithread scalability experiments
-python -u distribution.py --scal --thread $mythread --max_thread $numthreads > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
+# python -u distribution.py --scal --thread $mythread --max_thread $numthreads > data/output/$mythread:$(date +"%d-%m-%Y-%T".txt)  2>&1
 
 # kill $(ps aux | grep 'NNdhUiT' | grep 'python' | awk '{print $2}')

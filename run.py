@@ -8,7 +8,7 @@ import networkx as nx
 # from hgDecompose.newhgDecompose import HGDecompose
 from hgDecompose.optimizedhgDecompose import HGDecompose
 from hgDecompose.utils import get_hg, memory_usage_psutil,get_localhg
-from hgDecompose.influence_propagation import propagate_for_all_vertices, propagate_for_random_seeds, run_intervention_exp
+from hgDecompose.influence_propagation import propagate_for_all_vertices, propagate_for_random_seeds, run_intervention_exp2
 from hgDecompose.sis_propagation import propagateSIS_for_all_vertices
 import argparse
 import pandas as pd
@@ -105,7 +105,8 @@ if(args.sir or args.sir_exp2 or args.sir_exp3):
         entry['timestep_results'] = propagate_for_random_seeds(H, core_base, p = float(args.prob), verbose=args.verbose)
     elif(args.sir_exp3):
         # entry['result'], entry['timestep_results'] = propagate_for_random_seeds(H, core_base, p = float(args.prob), verbose=args.verbose)
-        entry['intervention_results'] = run_intervention_exp(H, core_base, p = float(args.prob),verbose = args.verbose)
+        # entry['intervention_results'] = run_intervention_exp(H, core_base, p = float(args.prob),verbose = args.verbose)
+        entry['intervention_results'] = run_intervention_exp2(args.dataset+"_"+args.algo, original_n = len(H.nodes()), p = float(args.prob),verbose = args.verbose)
         
 
     result = pd.DataFrame()
@@ -120,8 +121,13 @@ if(args.sir or args.sir_exp2 or args.sir_exp3):
     #                         index=False, mode='a')
     # result.to_csv('data/output/propagation_result_exp3.csv', header=False,
     #                         index=False, mode='a')
-    result.to_csv('data/output/propagation_result_topk_exp3.csv', header=False,
-                            index=False, mode='a')
+    # result.to_csv('data/output/propagation_result_topk_exp3.csv', header=False,
+    #                         index=False, mode='a')
+    print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+    # result.to_csv('data/output/propagation_result_topkpercent_exp3.csv', header=False,
+    #                     index=False, mode='a')
+    result.to_csv('data/output/propagation_result_recursive_delinner.csv', header=False,
+                        index=False, mode='a')
     quit()
 
 # # Pandemic propagation
@@ -264,10 +270,10 @@ for iteration in range(args.iterations):
     
     elif(args.algo == "opt_local_core"):
         # Run local_core algorithm while storing core-correction ammount and other auxiliary information.
-        # hgDecompose.opt_local_core(H, verbose=args.verbose, store_core_information=True, filename="data/output/"+args.dataset+"_local_core.csv", info_dic={'algo' : args.algo, 'dataset' : args.dataset, 'num_threads' : args.nthreads, 'outer iteration' : iteration})
+        hgDecompose.opt_local_core(H, verbose=args.verbose, store_core_information=True, filename="data/output/"+args.dataset+"_local_core.csv", info_dic={'algo' : args.algo, 'dataset' : args.dataset, 'num_threads' : args.nthreads, 'outer iteration' : iteration})
         
         # Run local_core algorithm without storing other auxiliary information.
-        hgDecompose.opt_local_core(H, verbose=args.verbose, store_core_information=False)
+        # hgDecompose.opt_local_core(H, verbose=args.verbose, store_core_information=False)
 
 
     # elif(args.algo == "improved_local_core_bst"):
@@ -320,9 +326,13 @@ for iteration in range(args.iterations):
     # print(result)
     # result.to_csv('data/output/scal_result.csv', header=False,
     #                         index=False, mode='a')
-    result.to_csv('data/output/result_temp.csv', header=False,
+    # result.to_csv('data/output/result_temp.csv', header=False,
+    #                         index=False, mode='a')
+    # result.to_csv('data/output/result_protein.csv', header=False,
+    #                         index=False, mode='a')
+    result.to_csv('data/output/result_gowalla.csv', header=False,
                             index=False, mode='a')
-
+    print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
 
     # print(memory_usage_psutil())

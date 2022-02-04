@@ -2,9 +2,9 @@ import random
 import numpy as np
 from copy import deepcopy
 from multiprocessing import Pool
+import os,pickle 
 
-
-def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100,  p = 0.5, num_iterations = 100, verbose=True):
+def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100,  p = 0.5, num_iterations = 100, original_n = None, verbose=True):
 
 
     
@@ -25,9 +25,9 @@ def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100, 
     for core_number in distinct_core_numbers[:top_k]:
         for v in random.choices(core_to_vertex_map[core_number], k=num_vertex_per_core):
             if(core_number not in result):
-                result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0]]
+                result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, original_n = original_n, verbose = verbose)[0]]
             else:
-                result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, verbose = verbose)[0])
+                result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, original_n = original_n, verbose = verbose)[0])
             
     #TODO: Parallelize this loop
     # core_v_list = [] 
@@ -57,10 +57,21 @@ def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100, 
 
     return result
 
+def run_intervention_exp2(name, original_n, p = 0.5, verbose = False):
+    path = '/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'.pkl'
+    with open(os.path.join(path), 'rb') as handle:
+        data = pickle.load(handle)
+    result = {}
+    for k in data:
+        result[k] = {}
+        temp_core = data[k]['core']
+        H = data[k]['H']
+        result[k] = propagate_for_all_vertices(H, temp_core, p = p, original_n = original_n, verbose=verbose)
+    return result 
 
 def run_intervention_exp(H, core, p = 0.5, verbose = False):
     # print(core)
-    deleted_ids = [2693,2804,3865,1547,2102,2960,2537,3446,2120,2673]
+    # deleted_ids = [2693,2804,3865,1547,2102,2960,2537, 3446, 2120, 2673]
     max_core_number = -1
     for v in core:
         if(max_core_number < core[v]):
@@ -100,34 +111,16 @@ def run_intervention_exp(H, core, p = 0.5, verbose = False):
     for node in H.nodes():
         temp_core[node] = core[node]
         # print(eid, H.get_edge_byindex(eid), temp_H.nodes(), len(temp_H.nodes()))
-    result['nill'] = propagate_for_all_vertices(H, temp_core, p = p, verbose=verbose)
+    result['nill'] = propagate_for_all_vertices(H, temp_core, p = p, original_n = len(all_nodes), verbose=verbose)
     
-    max_e = 15
-    todelete = [] 
-    for eid in random.choices(strongly_induced_eids, k = max_e):
-        todelete.append(eid)
-    
-    print('will delete: ',todelete)
-    temp_H = deepcopy(H)
-    for i in range(0,max_e,5):
-        for eid in todelete[i:i+5]:
-            print('deleting ',eid)
-            temp_H.del_edge(eid)
-        temp_core = {}
-        for node in temp_H.nodes():
-            temp_core[node] = core[node]   
-        result['top'+str(i+5)] = propagate_for_all_vertices(temp_H, temp_core, p = p, verbose=verbose)
-
-    # Top k% edge-deletion intervention strategy TODO
-    #     max_e = int(len(temp_core)* 0.10)
-    # print('will delete 10% = ',max_e,' edges')
+    # max_e = 15
     # todelete = [] 
     # for eid in random.choices(strongly_induced_eids, k = max_e):
     #     todelete.append(eid)
     
     # print('will delete: ',todelete)
     # temp_H = deepcopy(H)
-    # for i in range(1,10):
+    # for i in range(0,max_e,5):
     #     for eid in todelete[i:i+5]:
     #         print('deleting ',eid)
     #         temp_H.del_edge(eid)
@@ -135,6 +128,24 @@ def run_intervention_exp(H, core, p = 0.5, verbose = False):
     #     for node in temp_H.nodes():
     #         temp_core[node] = core[node]   
     #     result['top'+str(i+5)] = propagate_for_all_vertices(temp_H, temp_core, p = p, verbose=verbose)
+
+    # Random k% edge-deletion intervention strategy TODO
+    for eperc in [5,10,15]:
+        len_dele = int(len(temp_core)* eperc/100.0)
+        print('will delete ',eperc,'% = ',len_dele,' edges')
+        todelete = []
+        for eid in random.choices(strongly_induced_eids, k = len_dele):
+            todelete.append(eid)
+        
+        print('List : ',todelete)
+        temp_H = deepcopy(H)
+        for eid in todelete:
+            # print('deleting ',eid)
+            temp_H.del_edge(eid)
+        temp_core = {}
+        for node in temp_H.nodes():
+            temp_core[node] = core[node]
+        result['top'+str(eperc)+'%'] = propagate_for_all_vertices(temp_H, temp_core, p = p, original_n = len(all_nodes), verbose=verbose)
 
     return result
 
@@ -162,12 +173,15 @@ def propagate_for_random_seeds(H, core, seed_size = 1000, p = 0.5, num_iteration
 
 
 
-def propagate(H, starting_vertex, p = 0.5, num_iterations = 10, verbose=True):
+def propagate(H, starting_vertex, p = 0.5, num_iterations = 10, original_n = None, verbose=True):
     """
     """
-    
+    # print('original_n: ',original_n)
     timestep_of_infection = {}
-    len_nodes = H.get_N()
+    if original_n is None:
+        len_nodes = H.get_N()
+    else:
+        len_nodes = original_n 
     for v in H.nodes():
         timestep_of_infection[v] = num_iterations + 1
     suscepted = H.nodes()
@@ -218,4 +232,4 @@ def propagate(H, starting_vertex, p = 0.5, num_iterations = 10, verbose=True):
         for v in new_recovered:
             infected.remove(v)
     
-    return 1 - float(len(suscepted) / H.get_N()), timestep_of_infection
+    return 1 - float(len(suscepted) / len_nodes), timestep_of_infection

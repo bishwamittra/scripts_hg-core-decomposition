@@ -185,7 +185,7 @@ def get_hg(dataset):
 
         H = Hypergraph(dic)
 
-    elif(dataset in scalability_datasets+['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "4_sim", "5_sim", "pref", "pref_20000","pref_40000","pref_60000","pref_80000","pref_100000","congress", "contact","dblp", "amazon","gowalla","weeplaces"]):
+    elif(dataset in scalability_datasets+['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "4_sim", "5_sim", "pref", "pref_20000","pref_40000","pref_60000","pref_80000","pref_100000","congress", "contact","dblp", "amazon","gowalla","weeplaces",'protein']):
 
         # file location
         dataset_to_filename = {
@@ -195,6 +195,7 @@ def get_hg(dataset):
             "contact" : "data/datasets/real/contact-primary-school.hyp",
             "dblp": "data/datasets/real/DBLP.hyp",
             "amazon": "data/datasets/real/amazon-reviews.hyp",
+            "protein": 'data/datasets/real/humancomplexes.hyp',
 
             # synthetic
             "syn" : "data/datasets/synthetic/syn.hyp",
@@ -212,6 +213,7 @@ def get_hg(dataset):
              "pref_100000": "data/datasets/synthetic/pref_100000_3_1_simple.hyp",
              'gowalla': 'data/datasets/gowalla/gowallasimple.hyp',
              'weeplaces': 'data/datasets/weeplaces/weeplaces.hyp'
+             
         }
 
         for key,val in scal_dataset_to_filename.items():
@@ -268,7 +270,7 @@ def get_localhg(dataset):
 
         H = HypergraphL(dic)
 
-    elif(dataset in scalability_datasets+['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "4_sim", "5_sim", "pref","pref_20000","pref_40000","pref_60000","pref_80000","pref_100000", "congress", "contact","dblp","amazon","gowalla","weeplaces"]):
+    elif(dataset in scalability_datasets+['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "4_sim", "5_sim", "pref","pref_20000","pref_40000","pref_60000","pref_80000","pref_100000", "congress", "contact","dblp","amazon","gowalla","weeplaces","protein"]):
 
         # file location
         dataset_to_filename = {
@@ -278,6 +280,7 @@ def get_localhg(dataset):
             "contact" : "data/datasets/real/contact-primary-school.hyp",
             "dblp": "data/datasets/real/DBLP.hyp",
             "amazon": "data/datasets/real/amazon-reviews.hyp",
+            "protein": 'data/datasets/real/humancomplexes.hyp',
 
             # synthetic
             "syn" : "data/datasets/synthetic/syn.hyp",
