@@ -61,8 +61,10 @@ def run_intervention_exp2(name, original_n, p = 0.5, verbose = False):
     path = '/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'.pkl'
     with open(os.path.join(path), 'rb') as handle:
         data = pickle.load(handle)
+        print("loaded ",path)
     result = {}
     for k in data:
+        print('Core deletion#: ', k)
         result[k] = {}
         temp_core = data[k]['core']
         H = data[k]['H']
