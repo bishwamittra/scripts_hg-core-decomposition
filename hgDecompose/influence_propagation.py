@@ -3,7 +3,7 @@ import numpy as np
 from copy import deepcopy
 from multiprocessing import Pool
 import os,pickle 
-
+from hgDecompose.utils import check_connectivity,component_sz
 def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100,  p = 0.5, num_iterations = 100, original_n = None, verbose=True):
 
 
@@ -28,7 +28,8 @@ def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100, 
                 result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, original_n = original_n, verbose = verbose)[0]]
             else:
                 result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = num_iterations, original_n = original_n, verbose = verbose)[0])
-            
+            # print(component_sz(v))
+
     #TODO: Parallelize this loop
     # core_v_list = [] 
     # core_numbers = []
@@ -68,6 +69,7 @@ def run_intervention_exp2(name, original_n, p = 0.5, verbose = False):
         result[k] = {}
         temp_core = data[k]['core']
         H = data[k]['H']
+        # check_connectivity(H)
         result[k] = propagate_for_all_vertices(H, temp_core, p = p, original_n = original_n, verbose=verbose)
     return result 
 

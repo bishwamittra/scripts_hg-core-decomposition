@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 def gen_nested_hypergraph(num_subgraphs = 10):
     delete_percent = 1.0/num_subgraphs
     
-    name = "dblp"
+    name = "gowalla"
     input_H = get_hg(name) 
     pathstring = "/Users/nus/hg-core-decomposition/data/datasets/scalability/"
 

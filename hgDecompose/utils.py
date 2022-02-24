@@ -5,6 +5,7 @@ from hgDecompose.Hypergraph import Hypergraph
 from hgDecompose.IncidenceRep import HypergraphL
 import random
 import heapq
+from disjoint_set import DisjointSet
 
 scalability_datasets = ['enron_'+str(i) for i in range(10)] + ['dblp_'+str(i) for i in range(10)] + ['pref_'+str(i) for i in range(10)]
 scal_dataset_to_filename = {}
@@ -691,3 +692,30 @@ def memory_usage_psutil():
     mem = process.memory_info().rss / float(2 ** 20)
     return mem
 
+def check_connectivity(hg):
+    ds = DisjointSet()
+    for v in hg.nodes():
+        if v in ds:
+            continue 
+        else:
+            for e in hg.inc_dict[v]:
+                # print(hg.get_edge_byindex(e))
+                for u in hg.get_edge_byindex(e):
+                    ds.union(v,u)
+            # print('-----')
+            # print(list(ds.itersets()),'\n------')
+    print(len(list(ds.itersets())))
+    # print(list(ds.itersets()))
+            
+def component_sz(v,hg):
+    """ Returns the size of the component v is part of in Hg"""
+    ds = DisjointSet()
+    queue = [v]
+    while len(queue):
+        v = queue.pop(0)
+        for e in hg.inc_dict[v]:
+            for u in hg.get_edge_byindex(e):
+                ds.union(v,u)
+                if u!=v:
+                    queue.append(u)
+    print(len(list(ds.itersets())))
