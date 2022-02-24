@@ -8,7 +8,7 @@ import networkx as nx
 # from hgDecompose.newhgDecompose import HGDecompose
 from hgDecompose.optimizedhgDecompose import HGDecompose
 from hgDecompose.utils import get_hg, memory_usage_psutil,get_localhg,check_connectivity
-from hgDecompose.influence_propagation import propagate_for_all_vertices, propagate_for_random_seeds, run_intervention_exp2
+from hgDecompose.influence_propagation import propagate_for_all_vertices, propagate_for_random_seeds, run_intervention_exp2,run_intervention_exp2_explain
 from hgDecompose.sis_propagation import propagateSIS_for_all_vertices
 import argparse
 import pandas as pd
@@ -112,8 +112,9 @@ if(args.sir or args.sir_exp2 or args.sir_exp3):
         # entry['result'], entry['timestep_results'] = propagate_for_random_seeds(H, core_base, p = float(args.prob), verbose=args.verbose)
         # entry['intervention_results'] = run_intervention_exp(H, core_base, p = float(args.prob),verbose = args.verbose)
         entry['intervention_results'] = run_intervention_exp2(args.dataset+"_"+args.algo, original_n = len(H.nodes()), p = float(args.prob),verbose = args.verbose)
-        
-    quit()
+    elif(args.sir_exp3_explanation):
+        run_intervention_exp2_explain(args.dataset+"_"+args.algo, original_n = len(H.nodes()), p = float(args.prob),verbose = args.verbose)
+        quit()
     result = pd.DataFrame()
     result = result.append(entry, ignore_index=True)
     if(args.verbose): 

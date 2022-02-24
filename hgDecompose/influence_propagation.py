@@ -73,6 +73,40 @@ def run_intervention_exp2(name, original_n, p = 0.5, verbose = False):
         result[k] = propagate_for_all_vertices(H, temp_core, p = p, original_n = original_n, verbose=verbose)
     return result 
 
+def run_intervention_exp2_explain(name, original_n, p = 0.5, verbose = False):
+    path = '/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'.pkl'
+    with open(os.path.join(path), 'rb') as handle:
+        data = pickle.load(handle)
+        print("loaded ",path)
+    result = {}
+    for k in data:
+        print('Core deletion#: ', k)
+        result[k] = {}
+        temp_core = data[k]['core']
+        H = data[k]['H']
+        check_connectivity(H)
+
+        core_to_vertex_map = {}
+        distinct_core_numbers = []
+        for v in temp_core:
+            if(temp_core[v] not in core_to_vertex_map):
+                core_to_vertex_map[temp_core[v]] = [v]
+                distinct_core_numbers.append(temp_core[v])
+            else:
+                core_to_vertex_map[temp_core[v]].append(v)
+
+        distinct_core_numbers.sort(reverse=True)
+
+        for core_number in distinct_core_numbers[:100]:
+            for v in random.choices(core_to_vertex_map[core_number], k=100):
+                # if(core_number not in result):
+                #     result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0]]
+                # else:
+                #     result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0])
+                print(component_sz(v))
+
+        
+
 def run_intervention_exp(H, core, p = 0.5, verbose = False):
     # print(core)
     # deleted_ids = [2693,2804,3865,1547,2102,2960,2537, 3446, 2120, 2673]
