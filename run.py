@@ -29,6 +29,7 @@ parser.add_argument("--sis", action='store_true')
 parser.add_argument("--sir", action='store_true')
 parser.add_argument("--sir_exp2", action='store_true')
 parser.add_argument("--sir_exp3", action='store_true') # intervention
+parser.add_argument("--sir_exp3_explanation", action = 'store_true')
 parser.add_argument("--con", help="Is connected hypergraph", action='store_true')
 parser.add_argument("-p", "--prob", help="parameter for Probability", default= 0.3, type=float)
 parser.add_argument("-g", "--gamma", help="parameter for Probability", default= 0.01, type=float)
@@ -41,7 +42,7 @@ if (args.con):
     quit()
 
 # Pandemic propagation
-if(args.sir or args.sir_exp2 or args.sir_exp3):
+if(args.sir or args.sir_exp2 or args.sir_exp3 or args.sir_exp3_explanation):
 
     input_H = get_hg(args.dataset)
 
@@ -97,6 +98,8 @@ if(args.sir or args.sir_exp2 or args.sir_exp3):
         entry['exp'] = "sir_exp2"
     elif(args.sir_exp3):
         entry['exp'] = "sir_exp3"
+    elif(args.sir_exp3_explanation):
+        entry['exp'] = 'sir_exp3_explanation'
     else:
         raise NotImplementedError()
 

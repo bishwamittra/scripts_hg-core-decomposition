@@ -6,6 +6,7 @@ from hgDecompose.IncidenceRep import HypergraphL
 import random
 import heapq
 from disjoint_set import DisjointSet
+import pickle
 
 scalability_datasets = ['enron_'+str(i) for i in range(10)] + ['dblp_'+str(i) for i in range(10)] + ['pref_'+str(i) for i in range(10)]
 scal_dataset_to_filename = {}
@@ -186,7 +187,7 @@ def get_hg(dataset):
 
         H = Hypergraph(dic)
 
-    elif(dataset in scalability_datasets+['enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "4_sim", "5_sim", "pref", "pref_20000","pref_40000","pref_60000","pref_80000","pref_100000","congress", "contact","dblp", "amazon","gowalla","weeplaces",'protein']):
+    elif(dataset in scalability_datasets+['3sat','enron', "syn", "bin_1", "bin_2", "bin_4", "bin_5", "4_sim", "5_sim", "pref", "pref_20000","pref_40000","pref_60000","pref_80000","pref_100000","congress", "contact","dblp", "amazon","gowalla","weeplaces",'protein']):
 
         # file location
         dataset_to_filename = {
@@ -199,6 +200,7 @@ def get_hg(dataset):
             "protein": 'data/datasets/real/humancomplexes.hyp',
 
             # synthetic
+            '3sat': "data/datasets/synthetic/3sat",
             "syn" : "data/datasets/synthetic/syn.hyp",
             "bin_1" : "data/datasets/synthetic/binomial_5_100_4_0.200000_sample_1_iter_1.txt",
             "bin_2" : "data/datasets/synthetic/binomial_5_500_4_0.200000_sample_2_iter_1.txt",
@@ -704,18 +706,36 @@ def check_connectivity(hg):
                     ds.union(v,u)
             # print('-----')
             # print(list(ds.itersets()),'\n------')
-    print(len(list(ds.itersets())))
+    print('Is connected: ', len(list(ds.itersets()))==1)
     # print(list(ds.itersets()))
             
 def component_sz(v,hg):
     """ Returns the size of the component v is part of in Hg"""
     ds = DisjointSet()
     queue = [v]
+    traversed = {v: True}
     while len(queue):
         v = queue.pop(0)
         for e in hg.inc_dict[v]:
             for u in hg.get_edge_byindex(e):
                 ds.union(v,u)
-                if u!=v:
+                if u not in traversed:
                     queue.append(u)
-    print(len(list(ds.itersets())))
+                    traversed[u] = True
+                if not traversed[u]:
+                    queue.append(u)
+                    traversed[u] = True
+    return len(list(ds.itersets()))
+
+def save_dict(dict,fname = 'tests/tmp/temp.pkl'):
+    """ Save a dictionary """
+    print('Saving dictionary to: ',fname)
+    with open(fname, 'wb') as handle:
+        pickle.dump(dict, handle, protocol= 4) 
+
+def load_dict(fname = 'tests/tmp/temp.pkl'):
+    """ Load a dictionary """
+    print('Loading dictionary from: ',fname)
+    with open(fname, 'rb') as handle:
+        dict = pickle.load(handle)
+        return dict 
