@@ -1,9 +1,9 @@
-
 import os
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--thread", help="index of thread", default=-1, type=int)
 parser.add_argument("--max_thread", help="maximum number of thread", default=1, type=int)
+parser.add_argument("--iter", help="number of iterations", default = 5, type=int)
 args = parser.parse_args()
 
 # ['enron', 'congress', 'contact', 'syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5']
@@ -16,7 +16,8 @@ args = parser.parse_args()
 # algo_list = ['improved_local_core']
 # algo_list = ['graph_core','naive_degree']
 # algo_list = ['naive_nbr']
-algo_list = ['improved2_nbr']
+# algo_list = ['improved2_nbr']
+algo_list = ['opt_local_core']
 # algo_list = ['opt_local_core','iterative_local_core']
 # algo_list = ['bst_local_core','iterative_local_core','recursive_local_core']
 # algo_list = ['bst_local_core','iterative_local_core']
@@ -25,7 +26,9 @@ algo_list = ['improved2_nbr']
 # algo_list = ['iterative_local_core']
 # dataset_list = ['dblp','amazon']
 # dataset_list = ['syn', 'bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron', 'congress', 'contact', 'dblp','amazon']
-dataset_list = ['syn','bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact']
+# dataset_list = ['syn','bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact']
+dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact', 'pref','congress','dblp','gowalla','weeplaces']
+# dataset_list = ['default']
 # dataset_list = ['4_sim']
 # dataset_list = ['pref']
 # dataset_list = ['enron']
@@ -45,6 +48,7 @@ param_s_distinctvals = {'syn': 3, 'bin_1': 6, 'bin_2': 8, 'bin_4': 4,
                  'dblp': 86, 'amazon': None
                  }
 # param_s = [i+1 for i in range(10)]
+iterations = int(args.iter)
 num_divisions = 1
 
 # small exp
@@ -75,13 +79,18 @@ for i, configuration in enumerate(configurations):
     algo, dataset, s, nthreads = configuration
     s = 1
     if(i%args.max_thread == args.thread or args.thread == -1):
-        cmd = "python -W ignore -u -m tests.test" + \
+        # cmd = "python -W ignore -u -m tests.test" + \
+        #       " --algo " + algo + \
+        #       " --dataset " + dataset + \
+        #       " --param_s " + str(s) +\
+        #       " --nthreads " + str(nthreads)
+        cmd = "python -W ignore -u -m test.py" + \
               " --algo " + algo + \
               " --dataset " + dataset + \
               " --param_s " + str(s) +\
               " --nthreads " + str(nthreads)
         print(cmd) 
-        os.system(cmd)
+        # os.system(cmd)
         # break 
 
 # TO DO: ignore assertion -O

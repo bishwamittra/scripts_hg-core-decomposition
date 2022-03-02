@@ -150,8 +150,8 @@ for iteration in range(args.iterations):
     entry = {}
     entry['algo'] = args.algo
     entry['dataset'] = args.dataset
-    entry['num_threads'] = args.nthreads
-    entry['init_nbr'] = H.init_nbr
+    # entry['num_threads'] = args.nthreads
+    entry['init_nbrsize'] = H.init_nbrsize
     # run algo
     hgDecompose = HGDecompose()
     if(args.algo == "naive_nbr"):
@@ -167,29 +167,29 @@ for iteration in range(args.iterations):
         # Run local_core algorithm without storing other auxiliary information.
         # hgDecompose.opt_local_core(H, verbose=args.verbose, store_core_information=False)
     entry['core'] = hgDecompose.core
-    entry['param_s'] = args.param_s
+    # entry['param_s'] = args.param_s
     entry['execution time'] = hgDecompose.execution_time
-    entry['bucket update time'] = hgDecompose.bucket_update_time
-    entry['neighborhood call time'] = hgDecompose.neighborhood_call_time
-    entry['degree call time'] = hgDecompose.degree_call_time
-    entry['num bucket update'] = hgDecompose.num_bucket_update
-    entry['num neighborhood computation'] = hgDecompose.num_neighborhood_computation
-    entry['num degree computation'] = hgDecompose.num_degree_computation
-    entry['subgraph computation time'] = hgDecompose.subgraph_time
-    entry['num subgraph call'] = hgDecompose.num_subgraph_call
-    entry['init time'] = hgDecompose.init_time
-    entry['outerloop time'] = hgDecompose.loop_time
-    entry['total iteration'] = hgDecompose.total_iteration
-    entry['inner iteration'] = hgDecompose.inner_iteration
-    entry['core_correction time'] = hgDecompose.core_correct_time
-    entry['h_index_time'] = hgDecompose.h_index_time
+    # entry['bucket update time'] = hgDecompose.bucket_update_time
+    # entry['neighborhood call time'] = hgDecompose.neighborhood_call_time
+    # entry['degree call time'] = hgDecompose.degree_call_time
+    # entry['num bucket update'] = hgDecompose.num_bucket_update
+    # entry['num neighborhood computation'] = hgDecompose.num_neighborhood_computation
+    # entry['num degree computation'] = hgDecompose.num_degree_computation
+    # entry['subgraph computation time'] = hgDecompose.subgraph_time
+    # entry['num subgraph call'] = hgDecompose.num_subgraph_call
+    # entry['init time'] = hgDecompose.init_time
+    # entry['outerloop time'] = hgDecompose.loop_time
+    # entry['total iteration'] = hgDecompose.total_iteration
+    # entry['inner iteration'] = hgDecompose.inner_iteration
+    # entry['core_correction time'] = hgDecompose.core_correct_time
+    # entry['h_index_time'] = hgDecompose.h_index_time
     entry['tau'] = hgDecompose.max_n  # For #iterations vs dataset barplot
     entry['core_correction_volume'] = hgDecompose.core_correctionvol_n #  core_corrections volume per iteration => Ammount of core_correction done. => Relation with runtime
     entry['sum_core_correction_volume'] = hgDecompose.core_correction_volume  # For core_correction volume vs dataset plot
     entry['reduction_in_hhat']  = hgDecompose.reduction_hhat_n  # [ hhat^{n-1} - hhat^{n}, for n \in [1, tau] ] => Convergence plot.
 
-    if(True):
-        entry['memory taken'] = memory_usage_psutil()
+    # if(True):
+    #     entry['memory taken'] = memory_usage_psutil()
     # print(entry)
     result = pd.DataFrame()
     result = result.append(entry, ignore_index=True)
