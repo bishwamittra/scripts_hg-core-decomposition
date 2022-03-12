@@ -1,5 +1,6 @@
 import math
 class HypergraphL:
+    """ Hypergraph Class used by Local-core algorithm"""
     def __init__(self, _edgedict=None):
         self.inc_dict = {}  # key => node, value = List of incident hyperedge ids.
         self.e_id_to_edge = {} # key => hyperedge_id, value => List of vertices in a hyperedge
@@ -20,12 +21,76 @@ class HypergraphL:
                 self.init_nbr[v] = nbr_v  # neighbourbood set update
         
         self.init_nodes = sorted(self.init_nodes)
+        # self.edge_min_hindex = {} # key = edge_id, value => min (h_index of vertices in hyperedge edge_id)
+        # for v in self.init_nodes:
+        #     nbr_v = self.init_nbrsize[v]
+        #     for e_id in self.inc_dict[v]:
+        #         val = self.edge_min_hindex.get(e_id, math.inf)
+        #         self.edge_min_hindex[e_id] = min(nbr_v, val)
+
+        self.compute_local_upperbound()
         self.edge_min_hindex = {} # key = edge_id, value => min (h_index of vertices in hyperedge edge_id)
         for v in self.init_nodes:
-            nbr_v = self.init_nbrsize[v]
+            lub_v = self.lub[v]
             for e_id in self.inc_dict[v]:
                 val = self.edge_min_hindex.get(e_id, math.inf)
-                self.edge_min_hindex[e_id] = min(nbr_v, val)
+                self.edge_min_hindex[e_id] = min(lub_v, val)
+        self.compute_local_lowerbound()
+        
+    def compute_local_upperbound(self):
+        # Computing global upper and lower bounds
+        self.glb = math.inf
+        self.gub = -math.inf
+        # Computing local lower bounds
+        self.lub = {}
+        
+        # Auxiliary variables to assist computation of ub2
+        _inv_bucket = {}
+        _bucket = {}
+        
+        # Bucket initialisations
+        for v in self.init_nodes:
+            len_neighbors_v = self.init_nbrsize[v]
+            self.glb = min(self.glb,len_neighbors_v)
+            self.gub = max(self.gub, len_neighbors_v)
+            _inv_bucket[v] = len_neighbors_v
+            if len_neighbors_v not in _bucket:
+                _bucket[len_neighbors_v] = set()
+            _bucket[len_neighbors_v].add(v)
+        
+        # Week core-number computation
+        for k in range(self.glb, self.gub+1):
+            while len(_bucket.get(k, [])) != 0:
+                v = _bucket[k].pop()
+                self.lub[v] = k
+                for u in self.init_nbr[v]:
+                    if u not in self.lub:
+                        max_value = max(_inv_bucket[u] - 1, k)
+                        _bucket[_inv_bucket[u]].remove(u)
+                        if(max_value not in _bucket):
+                            _bucket[max_value] = set()
+                        _bucket[max_value].add(u)
+                        _inv_bucket[u] = max_value
+        del _bucket
+        del _inv_bucket
+
+    def compute_local_lowerbound(self):
+        """
+        Computes local lower bound for every node
+        """
+        self.glb = math.inf
+        self.llb = {}
+        # Computing global lower bounds
+        for v in self.init_nodes:
+            len_neighbors_v = self.init_nbrsize[v]
+            self.glb = min(self.glb,len_neighbors_v)
+
+        # Computing Local lower bound 
+        for v in self.init_nodes:
+            _max = -math.inf
+            for e_id in self.inc_dict[v]:
+                _max = max(_max, len(self.get_edge_byindex(e_id)) - 1)
+            self.llb[v] = max(_max, self.glb)
 
     def get_edge_byindex(self, e_id):
         return self.e_id_to_edge[e_id]

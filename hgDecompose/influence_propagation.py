@@ -60,7 +60,7 @@ def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100, 
     return result
 
 def run_intervention_exp2(name, original_n, p = 0.5, verbose = False):
-    path = '/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'.pkl'
+    path = 'data/datasets/sirdata/'+name+'.pkl'
     with open(os.path.join(path), 'rb') as handle:
         data = pickle.load(handle)
         print("loaded ",path)
@@ -71,7 +71,26 @@ def run_intervention_exp2(name, original_n, p = 0.5, verbose = False):
         temp_core = data[k]['core']
         H = data[k]['H']
         # check_connectivity(H)
-        result[k] = propagate_for_all_vertices(H, temp_core, p = p, original_n = original_n, verbose=verbose)
+        # result[k] = propagate_for_all_vertices(H, temp_core, p = p, original_n = original_n, verbose=verbose)
+        core_to_vertex_map = {}
+        distinct_core_numbers = []
+        for v in temp_core:
+            if(temp_core[v] not in core_to_vertex_map):
+                core_to_vertex_map[temp_core[v]] = [v]
+                distinct_core_numbers.append(temp_core[v])
+            else:
+                core_to_vertex_map[temp_core[v]].append(v)
+
+        distinct_core_numbers.sort(reverse=True)
+
+        for core_number in distinct_core_numbers[:100]:
+            print('core: ',core_number)
+            # result[k][core_number] = {}
+            for v in random.choices(core_to_vertex_map[core_number], k=100):
+                if(core_number not in result[k]):
+                    result[k][core_number] = [propagate2(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0]]
+                else:
+                    result[k][core_number].append(propagate2(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0])
     return result 
 
 def run_intervention_exp2_explain(name, original_n, p = 0.5, verbose = False):
@@ -81,12 +100,15 @@ def run_intervention_exp2_explain(name, original_n, p = 0.5, verbose = False):
         print("loaded ",path)
     result = {}
     for k in data:
+        # if (k!=2):
+        #     continue  
         print('Core deletion#: ', k)
         result[k] = {}
         temp_core = data[k]['core']
         H = data[k]['H']
+        print('N: ',len(H.inc_dict))
         # check_connectivity(H)
-
+        # continue 
         core_to_vertex_map = {}
         distinct_core_numbers = []
         for v in temp_core:
@@ -216,6 +238,7 @@ def propagate_for_random_seeds(H, core, seed_size = 1000, p = 0.5, num_iteration
 
 def propagate(H, starting_vertex, p = 0.5, num_iterations = 10, original_n = None, verbose=True):
     """
+    Returns fraction of infected
     """
     # print('original_n: ',original_n)
     timestep_of_infection = {}
@@ -274,3 +297,65 @@ def propagate(H, starting_vertex, p = 0.5, num_iterations = 10, original_n = Non
             infected.remove(v)
     
     return 1 - float(len(suscepted) / len_nodes), timestep_of_infection
+
+def propagate2(H, starting_vertex, p = 0.5, num_iterations = 10, original_n = None, verbose=True):
+    """
+    Returns number of infected
+    """
+    # print('original_n: ',original_n)
+    timestep_of_infection = {}
+    if original_n is None:
+        len_nodes = H.get_N()
+    else:
+        len_nodes = original_n 
+    for v in H.nodes():
+        timestep_of_infection[v] = num_iterations + 1
+    suscepted = H.nodes()
+    suscepted.remove(starting_vertex)
+    infected = [starting_vertex]
+    timestep_of_infection[starting_vertex] = 0
+    recovered = []
+
+    for i in range(num_iterations):
+        if(verbose):
+            print('\n\n\nIteration:', i)
+            # print("infected:", infected)
+            # print("recovered:", recovered)
+            # print("suscepted:", suscepted)
+            print()
+        
+        if(len(infected) == 0):
+            # if(verbose):
+            #     print("No more propagation is possible")
+            break
+        
+        
+        new_infected = []
+        new_recovered = []    
+        for v in infected:
+            # if(verbose):
+            #     print("\nPorpagating for", v)
+            for u in H.neighbors(v):
+                if(u in suscepted):
+                    if(random.random() <= p):
+                        # if(verbose):
+                        #     print(v, "->", u)
+                        new_infected.append(u)
+                        timestep_of_infection[u] = i + 1
+                        suscepted.remove(u)
+                    else:
+                        # if(verbose):
+                        #     print(v, "->", u, "not propagated")
+                        pass
+                # else:
+                #     if(verbose):
+                #         print(u, "is already either infected or recovered")
+            new_recovered.append(v)
+
+
+        infected += new_infected
+        recovered += new_recovered
+        for v in new_recovered:
+            infected.remove(v)
+    
+    return len_nodes - len(suscepted), timestep_of_infection

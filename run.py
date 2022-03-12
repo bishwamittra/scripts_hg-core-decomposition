@@ -114,7 +114,8 @@ if(args.sir or args.sir_exp2 or args.sir_exp3 or args.sir_exp3_explanation):
     elif(args.sir_exp3):
         # entry['result'], entry['timestep_results'] = propagate_for_random_seeds(H, core_base, p = float(args.prob), verbose=args.verbose)
         # entry['intervention_results'] = run_intervention_exp(H, core_base, p = float(args.prob),verbose = args.verbose)
-        entry['intervention_results'] = run_intervention_exp2(args.dataset+"_"+args.algo, original_n = len(H.nodes()), p = float(args.prob),verbose = args.verbose)
+        # entry['intervention_results'] = run_intervention_exp2(args.dataset+"_"+args.algo, original_n = len(H.nodes()), p = float(args.prob),verbose = args.verbose)
+        entry['intervention_results'] = run_intervention_exp2(args.dataset+"_"+args.algo, original_n = None, p = float(args.prob),verbose = args.verbose)
     elif(args.sir_exp3_explanation):
         run_intervention_exp2_explain(args.dataset+"_"+args.algo, original_n = len(H.nodes()), p = float(args.prob),verbose = args.verbose)
         quit()
@@ -135,7 +136,7 @@ if(args.sir or args.sir_exp2 or args.sir_exp3 or args.sir_exp3_explanation):
     print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
     # result.to_csv('data/output/propagation_result_topkpercent_exp3.csv', header=False,
     #                     index=False, mode='a')
-    result.to_csv('data/output/propagation_result_recursive_delinner.csv', header=False,
+    result.to_csv('data/output/propagation_result_recursive_delinner_'+args.dataset+"_"+args.algo+'3.csv', header=False,
                         index=False, mode='a')
     quit()
 
@@ -206,7 +207,7 @@ if(args.sir or args.sir_exp2 or args.sir_exp3 or args.sir_exp3_explanation):
 
 # hyper-graph construction
 # H = get_hg_hnx(args.dataset)
-if args.algo == 'opt_local_core':
+if args.algo.startswith('opt_local_core'):
     input_H = get_localhg(args.dataset)
 else:
     input_H = get_hg(args.dataset)
@@ -284,10 +285,18 @@ for iteration in range(args.iterations):
         # Run local_core algorithm without storing other auxiliary information.
         # hgDecompose.opt_local_core(H, verbose=args.verbose, store_core_information=False)
 
+    elif(args.algo == "opt_local_core_fast"):
+        # Run local_core algorithm without storing any information except execution time
+        hgDecompose.opt_local_core_bare_min(H)
 
-    # elif(args.algo == "improved_local_core_bst"):
-    #     hgDecompose.improved_local_core(H, verbose=args.verbose, bst = True)
+    elif(args.algo == "opt_local_coreI"):
+        hgDecompose.opt_local_core_I(H, verbose=args.verbose,store_core_information=True, filename="data/output/"+args.dataset+"_local_coreI.csv", info_dic={'algo' : args.algo, 'dataset' : args.dataset, 'num_threads' : args.nthreads, 'outer iteration' : iteration})
 
+    elif(args.algo == "opt_local_coreII"):
+        hgDecompose.opt_local_coreII(H, verbose=args.verbose,store_core_information=True, filename="data/output/"+args.dataset+"_local_coreII.csv", info_dic={'algo' : args.algo, 'dataset' : args.dataset, 'num_threads' : args.nthreads, 'outer iteration' : iteration})
+
+    elif(args.algo == "opt_local_coreIII"):
+        hgDecompose.opt_local_coreIII(H, verbose=args.verbose,store_core_information=True, filename="data/output/"+args.dataset+"_local_coreIII.csv", info_dic={'algo' : args.algo, 'dataset' : args.dataset, 'num_threads' : args.nthreads, 'outer iteration' : iteration})
 
     elif(args.algo == "par_local_core"):
         hgDecompose.par_local_core(H, verbose=args.verbose)
@@ -332,15 +341,16 @@ for iteration in range(args.iterations):
         print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
     os.system("mkdir -p data/output")
-    # print(result)
+    # print(result[['dataset','execution time','algo']])
+    # continue
     # result.to_csv('data/output/scal_result.csv', header=False,
     #                         index=False, mode='a')
-    # result.to_csv('data/output/result_temp.csv', header=False,
-    #                         index=False, mode='a')
+    result.to_csv('data/output/result_imp_lc2.csv', header=False,
+                            index=False, mode='a')
     # result.to_csv('data/output/result_protein.csv', header=False,
     #                         index=False, mode='a')
-    result.to_csv('data/output/result_gowalla.csv', header=False,
-                            index=False, mode='a')
+    # result.to_csv('data/output/result_gowalla.csv', header=False,
+    #                         index=False, mode='a')
     print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
 
 

@@ -77,7 +77,8 @@ class HGDecompose():
     def iterative_core_correct(self, H, u, core_u, core_dict):
         """ Finds the correct \hat{h} by traversing in descending order from core_u, core_u-1,...,until correct."""
         core_u = core_u - 1
-        while not self.LLCSAT(H, u, core_u, core_dict):
+        # while not self.LLCSAT(H, u, core_u, core_dict):
+        while not self.opt_LCCSAT(H, u, core_u):
             core_u = core_u - 1
         return core_u 
 
@@ -385,7 +386,7 @@ class HGDecompose():
         self.init_time = time() - start_init_time  
         if(verbose):
             print("Init core")
-            print(self.core)
+            # print(self.core)
 
         if(store_core_information):
             start_store_time = time()
@@ -422,8 +423,8 @@ class HGDecompose():
                 # else:
                 #     self.core[node] = self.core[node]
                 # dirty[node] = self.core[node]
-            if (verbose):
-                print(self.core)
+            # if (verbose):
+            #     print(self.core)
             # print(dirty)
             self.h_index_time += (time() - start_inner_time)
                 # if(verbose):
@@ -465,8 +466,8 @@ class HGDecompose():
             # for node in hhatn:
             #     self.core[node] = hhatn[node]
             k+=1
-            if (verbose):
-                print("Corrected: ",self.core)
+            # if (verbose):
+            #     print("Corrected: ",self.core)
 
             if(store_core_information):
                 start_store_time = time()
@@ -501,6 +502,9 @@ class HGDecompose():
         self.core_correction_volume = sum(self.core_correctionvol_n)
         self.max_n = k
         # print('opt_local_core: ', k)
+        if (verbose):
+            print("\n\nOutput")
+            print(self.core)
 
     def bipartitedist2core(self, H, verbose = True):
         
@@ -594,6 +598,7 @@ class HGDecompose():
         start_loop_time = time()
         for k in range(1, num_nodes + 1):
             while len(bucket.get(k, [])) != 0:
+                print(k)
                 v = bucket[k].pop()  # get first element in the
                 
                 if(verbose):
@@ -652,7 +657,10 @@ class HGDecompose():
         # print(self.core)
         self.loop_time = time() - start_loop_time
         self.execution_time = time() - start_execution_time
-
+        if (verbose):
+            print("\n\nOutput")
+            print(self.core)
+            
     def naiveDeg(self, H, verbose = True):
         assert isinstance(H,Hypergraph)
         start_execution_time = time()
@@ -1965,3 +1973,745 @@ class HGDecompose():
         self.max_n = k
         # if(verbose):
         #     print(self.core)
+
+    def opt_local_core_basic(self, H, verbose = True, store_core_information = False, filename=None, info_dic = {}):
+        """ 
+        Basic Local-core algorithm (no optimization)   
+        """
+        assert isinstance(H, HypergraphL)
+
+        start_execution_time = time()
+        total_store_time = 0
+        # total_store_time0 = 0
+        # start_init_time = time()
+
+        for node in H.init_node_iterator():
+            len_neighbors = H.get_init_nbrlen(node)
+            self.core[node] = len_neighbors
+            # if H.lub[node] > H.init_nbrsize[node]:
+            #     print(node)
+            
+        # self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        if(store_core_information):
+            start_store_time = time()
+            info_dic['iteration'] = 0
+            info_dic['core'] = self.core
+            info_dic['execution time'] = time() - start_execution_time
+            
+            # store to file
+            result = pd.DataFrame()
+            result = result.append(info_dic, ignore_index=True)
+            result.to_csv(filename, header=False,index=False, mode='a')
+            if(verbose): 
+                print(info_dic)
+                print("\n")
+                print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+            total_store_time0 += time() - start_store_time
+        # Main loop
+        # start_loop_time = time()
+        k = 0
+        while True:
+            # hn_1_minus_hn = 0 
+            # hn_minus_hhatn = 0
+            if (verbose):
+                print("Iteration: ", k)
+            flag = True
+            # start_inner_time = time()
+            hn = {}
+            for node in H.init_node_iterator():
+                H_value = operator_H([self.core[j] for j in H.init_nbr_iterator(node)])
+                if H_value < self.core[node]:
+                    # hn_1_minus_hn += (self.core[node] - H_value)
+                    hn[node] = H_value
+                    H.update_min_hindex(node, H_value)
+                else:
+                    hn[node]= self.core[node]
+                # else:
+                #     self.core[node] = self.core[node]
+                # dirty[node] = self.core[node]
+            if (verbose):
+                print(self.core)
+                print(hn)
+            # print(dirty)
+            # self.h_index_time += (time() - start_inner_time)
+                # if(verbose):
+                #     print("k:", k, "node:", node, "c[]=",self.core[node])
+            
+            # start_core_correct_time = time()
+            # dirty2 = heapdict()
+            # while len(dirty):
+            #     node, prev_core = dirty.popitem()
+            #     if not self.LLCSAT(H, node, self.core[node], self.core):   
+            #         flag = False
+            #         self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+            #         dirty2[node] = self.core[node]
+            #     else:
+            #         dirty2[node] = prev_core
+            # dirty = dirty2
+            # hhatn = {}
+            for node in H.init_node_iterator():
+                # if not self.LLCSAT(H, node, self.core[node], self.core):
+                if not self.opt_LCCSAT(H, node, hn[node]):   
+                    flag = False
+                    # self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # hhatn[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    hhatn = self.iterative_core_correct(H, node, hn[node], hn)
+                    # hn_minus_hhatn += (self.core[node] - hhatn)
+                    self.core[node]  = hhatn
+
+                    # H.update_min_hindex(node, hhatn[node])
+                    H.update_min_hindex(node, self.core[node])
+                    
+                    # for u in H.init_nbr[node]:
+                    #     if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
+                    #         # Instead of checking LLCSAT again assume they must be corrected.
+                    #         self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
+                    #         core_corrected_bucket.add(u)
+                else:
+                    self.core[node] = hn[node]
+            # self.core_correct_time += (time() - start_core_correct_time)
+            # self.core_correctionvol_n.append(hn_minus_hhatn)
+            # self.reduction_hhat_n.append(hn_1_minus_hn + hn_minus_hhatn)
+            # for node in hhatn:
+            #     self.core[node] = hhatn[node]
+            k+=1
+            if (verbose):
+                print("Corrected: ",self.core)
+
+            if(store_core_information):
+                start_store_time = time()
+                info_dic['iteration'] = k
+                info_dic['core'] = self.core
+                info_dic['execution time'] = time() - start_execution_time - total_store_time
+
+                
+                # store to file
+                result = pd.DataFrame()
+                result = result.append(info_dic, ignore_index=True)
+                result.to_csv(filename, header=False,index=False, mode='a')
+                if(verbose): 
+                    print(info_dic)
+                    print("\n")
+                    print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+                # total_store_time += time() - start_store_time
+            
+            if flag:
+                break
+
+        # self.loop_time = time() - start_loop_time
+        self.execution_time = time() - start_execution_time
+
+        # store time is significant
+        if(store_core_information):
+            
+            self.loop_time -= total_store_time
+            self.execution_time -= total_store_time
+            self.execution_time -= total_store_time0
+        self.core_correction_volume = sum(self.core_correctionvol_n)
+        self.max_n = k
+        # print('opt_local_core: ', k)
+
+    def opt_local_core_I(self, H, verbose = True, store_core_information = False, filename=None, info_dic = {}):
+        """ 
+        Local-core + Optimization (I)
+        Optimiation (I) 
+            => Update core[node] instead of hn[node] so that other vertices can use that info in that iteration
+        """
+        assert isinstance(H, HypergraphL)
+
+        start_execution_time = time()
+        total_store_time = 0
+        # total_store_time0 = 0
+        # start_init_time = time()
+
+        for node in H.init_node_iterator():
+            len_neighbors = H.get_init_nbrlen(node)
+            self.core[node] = len_neighbors
+
+        # self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        if(store_core_information):
+            start_store_time = time()
+            info_dic['iteration'] = 0
+            info_dic['core'] = self.core
+            info_dic['execution time'] = time() - start_execution_time
+            
+            # store to file
+            result = pd.DataFrame()
+            result = result.append(info_dic, ignore_index=True)
+            result.to_csv(filename, header=False,index=False, mode='a')
+            if(verbose): 
+                print(info_dic)
+                print("\n")
+                print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+            total_store_time0 += time() - start_store_time
+        # Main loop
+        # start_loop_time = time()
+        k = 0
+        while True:
+            # hn_1_minus_hn = 0 
+            # hn_minus_hhatn = 0
+            if (verbose):
+                print("Iteration: ", k)
+            flag = True
+            # start_inner_time = time()
+            for node in H.init_node_iterator():
+                H_value = operator_H([self.core[j] for j in H.init_nbr_iterator(node)])
+                if H_value < self.core[node]:
+                    # hn_1_minus_hn += (self.core[node] - H_value)
+                    self.core[node] = H_value
+                    H.update_min_hindex(node, H_value)
+                # else:
+                #     self.core[node] = self.core[node]
+                # dirty[node] = self.core[node]
+            if (verbose):
+                print(self.core)
+            # print(dirty)
+            # self.h_index_time += (time() - start_inner_time)
+                # if(verbose):
+                #     print("k:", k, "node:", node, "c[]=",self.core[node])
+            
+            # start_core_correct_time = time()
+            # dirty2 = heapdict()
+            # while len(dirty):
+            #     node, prev_core = dirty.popitem()
+            #     if not self.LLCSAT(H, node, self.core[node], self.core):   
+            #         flag = False
+            #         self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+            #         dirty2[node] = self.core[node]
+            #     else:
+            #         dirty2[node] = prev_core
+            # dirty = dirty2
+            # hhatn = {}
+            for node in H.init_node_iterator():
+                # if not self.LLCSAT(H, node, self.core[node], self.core):
+                if not self.opt_LCCSAT(H, node, self.core[node]):   
+                    flag = False
+                    # self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # hhatn[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    hhatn = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # hn_minus_hhatn += (self.core[node] - hhatn)
+                    self.core[node]  = hhatn
+
+                    # H.update_min_hindex(node, hhatn[node])
+                    H.update_min_hindex(node, self.core[node])
+                    
+                    # for u in H.init_nbr[node]:
+                    #     if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
+                    #         # Instead of checking LLCSAT again assume they must be corrected.
+                    #         self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
+                    #         core_corrected_bucket.add(u)
+            # self.core_correct_time += (time() - start_core_correct_time)
+            # self.core_correctionvol_n.append(hn_minus_hhatn)
+            # self.reduction_hhat_n.append(hn_1_minus_hn + hn_minus_hhatn)
+            # for node in hhatn:
+            #     self.core[node] = hhatn[node]
+            k+=1
+            if (verbose):
+                print("Corrected: ",self.core)
+
+            if(store_core_information):
+                start_store_time = time()
+                info_dic['iteration'] = k
+                info_dic['core'] = self.core
+                info_dic['execution time'] = time() - start_execution_time - total_store_time
+
+                
+                # store to file
+                result = pd.DataFrame()
+                result = result.append(info_dic, ignore_index=True)
+                result.to_csv(filename, header=False,index=False, mode='a')
+                if(verbose): 
+                    print(info_dic)
+                    print("\n")
+                    print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+                # total_store_time += time() - start_store_time
+            
+            if flag:
+                break
+
+        # self.loop_time = time() - start_loop_time
+        self.execution_time = time() - start_execution_time
+
+        # store time is significant
+        if(store_core_information):
+            
+            self.loop_time -= total_store_time
+            self.execution_time -= total_store_time
+            self.execution_time -= total_store_time0
+        self.core_correction_volume = sum(self.core_correctionvol_n)
+        self.max_n = k
+        # print('opt_local_core: ', k)
+
+    def opt_local_coreII(self, H, verbose = True, store_core_information = False, filename=None, info_dic = {}):
+        """ 
+         Local-core + Optimization (I) + Optimization (II)
+        Optimiation (I) 
+            => Update core[node] instead of hn[node] so that other vertices can use that info
+        Optimization (II) 
+            => Use a tighter upper bound than N(u) to initialise core[node] =>
+        """
+        assert isinstance(H, HypergraphL)
+
+        start_execution_time = time()
+        total_store_time = 0
+        # total_store_time0 = 0
+        # start_init_time = time()
+
+        for node in H.init_node_iterator():
+            # len_neighbors = H.get_init_nbrlen(node)
+            # self.core[node] = len_neighbors
+            self.core[node] = H.lub[node]
+            # if H.lub[node] > H.init_nbrsize[node]:
+            #     print(node)
+            
+        # self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        if(store_core_information):
+            start_store_time = time()
+            info_dic['iteration'] = 0
+            info_dic['core'] = self.core
+            info_dic['execution time'] = time() - start_execution_time
+            
+            # store to file
+            result = pd.DataFrame()
+            result = result.append(info_dic, ignore_index=True)
+            result.to_csv(filename, header=False,index=False, mode='a')
+            if(verbose): 
+                print(info_dic)
+                print("\n")
+                print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+            total_store_time0 += time() - start_store_time
+        # Main loop
+        # start_loop_time = time()
+        k = 0
+        while True:
+            # hn_1_minus_hn = 0 
+            # hn_minus_hhatn = 0
+            if (verbose):
+                print("Iteration: ", k)
+            flag = True
+            # start_inner_time = time()
+            for node in H.init_node_iterator():
+                H_value = operator_H([self.core[j] for j in H.init_nbr_iterator(node)])
+                if H_value < self.core[node]:
+                    # hn_1_minus_hn += (self.core[node] - H_value)
+                    self.core[node] = H_value
+                    H.update_min_hindex(node, H_value)
+                # else:
+                #     self.core[node] = self.core[node]
+                # dirty[node] = self.core[node]
+            if (verbose):
+                print(self.core)
+            # print(dirty)
+            # self.h_index_time += (time() - start_inner_time)
+                # if(verbose):
+                #     print("k:", k, "node:", node, "c[]=",self.core[node])
+            
+            # start_core_correct_time = time()
+            # dirty2 = heapdict()
+            # while len(dirty):
+            #     node, prev_core = dirty.popitem()
+            #     if not self.LLCSAT(H, node, self.core[node], self.core):   
+            #         flag = False
+            #         self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+            #         dirty2[node] = self.core[node]
+            #     else:
+            #         dirty2[node] = prev_core
+            # dirty = dirty2
+            # hhatn = {}
+            for node in H.init_node_iterator():
+                # if not self.LLCSAT(H, node, self.core[node], self.core):
+                if not self.opt_LCCSAT(H, node, self.core[node]):   
+                    flag = False
+                    # self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # hhatn[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    hhatn = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # hn_minus_hhatn += (self.core[node] - hhatn)
+                    self.core[node]  = hhatn
+
+                    # H.update_min_hindex(node, hhatn[node])
+                    H.update_min_hindex(node, self.core[node])
+                    
+                    # for u in H.init_nbr[node]:
+                    #     if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
+                    #         # Instead of checking LLCSAT again assume they must be corrected.
+                    #         self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
+                    #         core_corrected_bucket.add(u)
+            # self.core_correct_time += (time() - start_core_correct_time)
+            # self.core_correctionvol_n.append(hn_minus_hhatn)
+            # self.reduction_hhat_n.append(hn_1_minus_hn + hn_minus_hhatn)
+            # for node in hhatn:
+            #     self.core[node] = hhatn[node]
+            k+=1
+            if (verbose):
+                print("Corrected: ",self.core)
+
+            if(store_core_information):
+                start_store_time = time()
+                info_dic['iteration'] = k
+                info_dic['core'] = self.core
+                info_dic['execution time'] = time() - start_execution_time - total_store_time
+
+                
+                # store to file
+                result = pd.DataFrame()
+                result = result.append(info_dic, ignore_index=True)
+                result.to_csv(filename, header=False,index=False, mode='a')
+                if(verbose): 
+                    print(info_dic)
+                    print("\n")
+                    print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+                # total_store_time += time() - start_store_time
+            
+            if flag:
+                break
+
+        # self.loop_time = time() - start_loop_time
+        self.execution_time = time() - start_execution_time
+
+        # store time is significant
+        if(store_core_information):
+            
+            self.loop_time -= total_store_time
+            self.execution_time -= total_store_time
+            self.execution_time -= total_store_time0
+        self.core_correction_volume = sum(self.core_correctionvol_n)
+        self.max_n = k
+        # print('opt_local_core: ', k)
+
+    def opt_local_coreIII(self, H, verbose = True, store_core_information = False, filename=None, info_dic = {}):
+        """ 
+         Local-core + Optimization (I) + Optimization (II) + Optimization (III)
+        Optimiation (I) 
+            => Update core[node] instead of hn[node] so that other vertices can use that info
+        Optimization (II) 
+            => Use a tighter upper bound than N(u) to initialise core[node] 
+        Optimization (III)
+            => Prune redundant loops by checkin when self.core[u] == self.llb[u]
+        """
+        assert isinstance(H, HypergraphL)
+
+        start_execution_time = time()
+        total_store_time = 0
+        # total_store_time0 = 0
+        # start_init_time = time()
+
+        for node in H.init_node_iterator():
+            self.core[node] = H.lub[node]
+            
+        # self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        if(store_core_information):
+            start_store_time = time()
+            info_dic['iteration'] = 0
+            info_dic['core'] = self.core
+            info_dic['execution time'] = time() - start_execution_time
+            
+            # store to file
+            result = pd.DataFrame()
+            result = result.append(info_dic, ignore_index=True)
+            result.to_csv(filename, header=False,index=False, mode='a')
+            if(verbose): 
+                print(info_dic)
+                print("\n")
+                print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+            total_store_time0 += time() - start_store_time
+        # Main loop
+        # start_loop_time = time()
+        k = 0
+        while True:
+            # hn_1_minus_hn = 0 
+            # hn_minus_hhatn = 0
+            if (verbose):
+                print("Iteration: ", k)
+            flag = True
+            # start_inner_time = time()
+            for node in H.init_node_iterator():
+                if self.core[node] == H.llb[node]:
+                    continue 
+                H_value = operator_H([self.core[j] for j in H.init_nbr_iterator(node)])
+                if H_value < self.core[node]:
+                    # hn_1_minus_hn += (self.core[node] - H_value)
+                    self.core[node] = H_value
+                    H.update_min_hindex(node, H_value)
+                # else:
+                #     self.core[node] = self.core[node]
+                # dirty[node] = self.core[node]
+            if (verbose):
+                print(self.core)
+            # print(dirty)
+            # self.h_index_time += (time() - start_inner_time)
+                # if(verbose):
+                #     print("k:", k, "node:", node, "c[]=",self.core[node])
+            
+            # start_core_correct_time = time()
+            # dirty2 = heapdict()
+            # while len(dirty):
+            #     node, prev_core = dirty.popitem()
+            #     if not self.LLCSAT(H, node, self.core[node], self.core):   
+            #         flag = False
+            #         self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+            #         dirty2[node] = self.core[node]
+            #     else:
+            #         dirty2[node] = prev_core
+            # dirty = dirty2
+            # hhatn = {}
+            for node in H.init_node_iterator():
+                if self.core[node] == H.llb[node]:
+                    continue 
+                if not self.opt_LCCSAT(H, node, self.core[node]):   
+                    flag = False
+                    # self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # hhatn[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    hhatn = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # hn_minus_hhatn += (self.core[node] - hhatn)
+                    self.core[node]  = hhatn
+
+                    # H.update_min_hindex(node, hhatn[node])
+                    H.update_min_hindex(node, self.core[node])
+                    
+                    # for u in H.init_nbr[node]:
+                    #     if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
+                    #         # Instead of checking LLCSAT again assume they must be corrected.
+                    #         self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
+                    #         core_corrected_bucket.add(u)
+            # self.core_correct_time += (time() - start_core_correct_time)
+            # self.core_correctionvol_n.append(hn_minus_hhatn)
+            # self.reduction_hhat_n.append(hn_1_minus_hn + hn_minus_hhatn)
+            # for node in hhatn:
+            #     self.core[node] = hhatn[node]
+            k+=1
+            if (verbose):
+                print("Corrected: ",self.core)
+
+            if(store_core_information):
+                start_store_time = time()
+                info_dic['iteration'] = k
+                info_dic['core'] = self.core
+                info_dic['execution time'] = time() - start_execution_time - total_store_time
+
+                
+                # store to file
+                result = pd.DataFrame()
+                result = result.append(info_dic, ignore_index=True)
+                result.to_csv(filename, header=False,index=False, mode='a')
+                if(verbose): 
+                    print(info_dic)
+                    print("\n")
+                    print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+                # total_store_time += time() - start_store_time
+            
+            if flag:
+                break
+
+        # self.loop_time = time() - start_loop_time
+        self.execution_time = time() - start_execution_time
+
+        # store time is significant
+        if(store_core_information):
+            
+            self.loop_time -= total_store_time
+            self.execution_time -= total_store_time
+            self.execution_time -= total_store_time0
+        self.core_correction_volume = sum(self.core_correctionvol_n)
+        self.max_n = k
+        # print('opt_local_core: ', k)
+
+    def opt_local_coreIII_par(self, H, verbose = True, store_core_information = False, filename=None, info_dic = {}):
+        """ 
+         Local-core + Optimization (I) + Optimization (II) + Optimization (III)
+        Optimiation (I) 
+            => Update core[node] instead of hn[node] so that other vertices can use that info
+        Optimization (II) 
+            => Use a tighter upper bound than N(u) to initialise core[node] 
+        Optimization (III)
+            => Prune redundant loops by checkin when self.core[u] == self.llb[u]
+        """
+        assert isinstance(H, HypergraphL)
+
+        start_execution_time = time()
+        total_store_time = 0
+        # total_store_time0 = 0
+        # start_init_time = time()
+
+        for node in H.init_node_iterator():
+            self.core[node] = H.lub[node]
+            
+        # self.init_time = time() - start_init_time  
+        if(verbose):
+            print("Init core")
+            print(self.core)
+
+        if(store_core_information):
+            start_store_time = time()
+            info_dic['iteration'] = 0
+            info_dic['core'] = self.core
+            info_dic['execution time'] = time() - start_execution_time
+            
+            # store to file
+            result = pd.DataFrame()
+            result = result.append(info_dic, ignore_index=True)
+            result.to_csv(filename, header=False,index=False, mode='a')
+            if(verbose): 
+                print(info_dic)
+                print("\n")
+                print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+            total_store_time0 += time() - start_store_time
+        # Main loop
+        # start_loop_time = time()
+        k = 0
+        while True:
+            # hn_1_minus_hn = 0 
+            # hn_minus_hhatn = 0
+            if (verbose):
+                print("Iteration: ", k)
+            flag = True
+            # start_inner_time = time()
+            for node in H.init_node_iterator():
+                if self.core[node] == H.llb[node]:
+                    continue 
+                H_value = operator_H([self.core[j] for j in H.init_nbr_iterator(node)])
+                if H_value < self.core[node]:
+                    # hn_1_minus_hn += (self.core[node] - H_value)
+                    self.core[node] = H_value
+                    H.update_min_hindex(node, H_value)
+                # else:
+                #     self.core[node] = self.core[node]
+                # dirty[node] = self.core[node]
+            if (verbose):
+                print(self.core)
+            # print(dirty)
+            # self.h_index_time += (time() - start_inner_time)
+                # if(verbose):
+                #     print("k:", k, "node:", node, "c[]=",self.core[node])
+            
+            # start_core_correct_time = time()
+            # dirty2 = heapdict()
+            # while len(dirty):
+            #     node, prev_core = dirty.popitem()
+            #     if not self.LLCSAT(H, node, self.core[node], self.core):   
+            #         flag = False
+            #         self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+            #         dirty2[node] = self.core[node]
+            #     else:
+            #         dirty2[node] = prev_core
+            # dirty = dirty2
+            # hhatn = {}
+            for node in H.init_node_iterator():
+                if self.core[node] == H.llb[node]:
+                    continue 
+                if not self.opt_LCCSAT(H, node, self.core[node]):   
+                    flag = False
+                    # self.core[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # hhatn[node] = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    hhatn = self.iterative_core_correct(H, node, self.core[node], self.core)
+                    # hn_minus_hhatn += (self.core[node] - hhatn)
+                    self.core[node]  = hhatn
+
+                    # H.update_min_hindex(node, hhatn[node])
+                    H.update_min_hindex(node, self.core[node])
+                    
+                    # for u in H.init_nbr[node]:
+                    #     if self.core[u] > self.core[node] and self.core[u] <= prev_core: 
+                    #         # Instead of checking LLCSAT again assume they must be corrected.
+                    #         self.core[node] = self.iterative_core_correct(H, u, self.core[u], self.core)
+                    #         core_corrected_bucket.add(u)
+            # self.core_correct_time += (time() - start_core_correct_time)
+            # self.core_correctionvol_n.append(hn_minus_hhatn)
+            # self.reduction_hhat_n.append(hn_1_minus_hn + hn_minus_hhatn)
+            # for node in hhatn:
+            #     self.core[node] = hhatn[node]
+            k+=1
+            if (verbose):
+                print("Corrected: ",self.core)
+
+            if(store_core_information):
+                start_store_time = time()
+                info_dic['iteration'] = k
+                info_dic['core'] = self.core
+                info_dic['execution time'] = time() - start_execution_time - total_store_time
+
+                
+                # store to file
+                result = pd.DataFrame()
+                result = result.append(info_dic, ignore_index=True)
+                result.to_csv(filename, header=False,index=False, mode='a')
+                if(verbose): 
+                    print(info_dic)
+                    print("\n")
+                    print(", ".join(["\'" + column + "\'" for column in result.columns.tolist()]))
+
+                # total_store_time += time() - start_store_time
+            
+            if flag:
+                break
+
+        # self.loop_time = time() - start_loop_time
+        self.execution_time = time() - start_execution_time
+
+        # store time is significant
+        if(store_core_information):
+            
+            self.loop_time -= total_store_time
+            self.execution_time -= total_store_time
+            self.execution_time -= total_store_time0
+        self.core_correction_volume = sum(self.core_correctionvol_n)
+        self.max_n = k
+        # print('opt_local_core: ', k)
+
+    def opt_local_core_bare_min(self, H):
+            """ 
+            More efficient local core computation: The times reported in the paper comes from this implementation.
+            """
+            assert isinstance(H, HypergraphL)
+
+            start_execution_time = time()
+
+            for node in H.init_node_iterator():
+                len_neighbors = H.get_init_nbrlen(node)
+                self.core[node] = len_neighbors
+
+            # Main loop
+            while True:
+                flag = True
+                # start_inner_time = time()
+                for node in H.init_node_iterator():
+                    H_value = operator_H([self.core[j] for j in H.init_nbr_iterator(node)])
+                    if H_value < self.core[node]:
+                        self.core[node] = H_value
+                        H.update_min_hindex(node, H_value)
+                for node in H.init_node_iterator():
+                    if not self.opt_LCCSAT(H, node, self.core[node]):   
+                        flag = False
+                        hhatn = self.iterative_core_correct(H, node, self.core[node], self.core)
+
+                        self.core[node]  = hhatn
+                        H.update_min_hindex(node, self.core[node])
+
+                if flag:
+                    break
+            self.execution_time = time() - start_execution_time
+            # print('opt_local_core: ', k)

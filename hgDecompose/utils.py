@@ -218,7 +218,7 @@ def get_hg(dataset):
              'weeplaces': 'data/datasets/weeplaces/weeplaces.hyp'
              
         }
-
+        # print(dataset_to_filename[dataset])
         for key,val in scal_dataset_to_filename.items():
             dataset_to_filename[key] = val 
 
@@ -725,7 +725,10 @@ def component_sz(v,hg):
                 if not traversed[u]:
                     queue.append(u)
                     traversed[u] = True
-    return len(list(ds.itersets()))
+    # print('traversed= ',len(traversed), '|V| = ', len(hg.inc_dict))
+    # print(len(list(ds.itersets())))
+    # assert len(traversed) == len(hg.inc_dict)
+    return len(traversed)
 
 def save_dict(dict,fname = 'tests/tmp/temp.pkl'):
     """ Save a dictionary """

@@ -216,11 +216,11 @@ else:
 
 
 # compared algo
-# H = deepcopy(input_H)
 if args.algo.startswith('opt') and 'local' in args.algo:
     H = get_localhg(args.dataset)
 else:
     H = get_hg(args.dataset)
+H_copy = deepcopy(H)
 
 assert H is not None
 hgDecompose = HGDecompose()
@@ -289,6 +289,23 @@ elif(args.algo == "improved_local_core"):
 elif(args.algo == "opt_local_core"):
     hgDecompose.opt_local_core(H, verbose=args.verbose)
 
+
+elif(args.algo == "opt_local_core_fast"):
+    # Run local_core algorithm without storing any information except execution time
+    hgDecompose.opt_local_core_bare_min(H)
+    
+elif(args.algo == "opt_local_core_basic"):
+    hgDecompose.opt_local_core_basic(H, verbose=args.verbose)
+
+elif(args.algo == "opt_local_coreI"):
+    hgDecompose.opt_local_core_I(H, verbose=args.verbose)
+
+elif(args.algo == "opt_local_coreII"):
+    hgDecompose.opt_local_coreII(H, verbose=args.verbose)
+
+elif(args.algo == "opt_local_coreIII"):
+    hgDecompose.opt_local_coreIII(H, verbose=args.verbose)
+
 # elif(args.algo == "improved_local_core_bst"):
 #     hgDecompose.improved_local_core(H, verbose=args.verbose, bst = True)
 
@@ -302,7 +319,7 @@ else:
     raise RuntimeError(args.algo + " is not defined or implemented yet")
 
 core_compared = hgDecompose.core
-
+print('time: ',hgDecompose.execution_time)
 
 # assertions
 # len
@@ -317,7 +334,7 @@ assert len(core_base) == len(core_compared), "Two returned cores do not have sam
 
 # k = 24
 # from tests.verify_kcore import verify_subgraph
-# verify_subgraph(H,threshold= k, cores = core_compared)
+# verify_subgraph(H_copy,threshold= 27, cores = core_compared)
 
 for v in core_base:
     assert v in core_compared, str(v) + " is not in core_compared"

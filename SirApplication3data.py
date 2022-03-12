@@ -5,6 +5,7 @@ import time
 import argparse,pickle,copy
 from hgDecompose.optimizedhgDecompose import HGDecompose
 from matplotlib import pyplot as plt
+import networkx as nx 
 # random.seed(10)
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--dataset", type=str, default="default")
@@ -37,7 +38,20 @@ def gen_nested_hypergraph():
         hgDecompose = HGDecompose()
         if(args.algo == "naive_nbr"):
             hgDecompose.naiveNBR(input_H, verbose=False)
+        if(args.algo == "naive_degree"):
+            hgDecompose.naiveDeg(input_H, verbose=args.verbose)
+
+        if(args.algo == "graph_core"):
+            G = input_H.get_clique_graph()
+            nx_G = nx.Graph()
+            # print("N: ",G.get_N())
+            # print("M: ",G.get_M())
+            # hgDecompose.naiveDeg(G, verbose=args.verbose)
+            for e in G.edge_iterator():
+                nx_G.add_edge(e[0],e[1])
+            hgDecompose.core = nx.core_number(nx_G)
         core_base = hgDecompose.core
+        
     else:
         with open(fname, 'rb') as handle:
             hgDecompose = pickle.load(handle)
@@ -58,6 +72,17 @@ def gen_nested_hypergraph():
         hgDecompose = HGDecompose()
         if(args.algo == "naive_nbr"):
             hgDecompose.naiveNBR(copy.deepcopy(output[i]['H']), verbose=False)
+        if(args.algo == "naive_degree"):
+            hgDecompose.naiveDeg(copy.deepcopy(output[i]['H']), verbose=False)
+        if(args.algo == "graph_core"):
+            G = copy.deepcopy(output[i]['H']).get_clique_graph()
+            nx_G = nx.Graph()
+            # print("N: ",G.get_N())
+            # print("M: ",G.get_M())
+            # hgDecompose.naiveDeg(G, verbose=args.verbose)
+            for e in G.edge_iterator():
+                nx_G.add_edge(e[0],e[1])
+            hgDecompose.core = nx.core_number(nx_G)
         core_base = hgDecompose.core
         output[i]['core'] = core_base
         remainder_vertices = del_innercore(output[i]['H'], core_base)
@@ -66,14 +91,14 @@ def gen_nested_hypergraph():
             pickle.dump(output, handle, protocol= 4)
 
 
-# gen_nested_hypergraph()
+gen_nested_hypergraph()
 
-pathstring = "/Users/nus/hg-core-decomposition/data/datasets/sirdata/"
-args = parser.parse_args()
-name = args.dataset
-algoname = args.algo
-level = int(args.level)
-with open(os.path.join(pathstring,name+'_'+algoname+'.pkl'), 'rb') as handle:
-    output = pickle.load(handle)
-print(output.keys())
-print(output[9])
+# pathstring = "/Users/nus/hg-core-decomposition/data/datasets/sirdata/"
+# args = parser.parse_args()
+# name = args.dataset
+# algoname = args.algo
+# level = int(args.level)
+# with open(os.path.join(pathstring,name+'_'+algoname+'.pkl'), 'rb') as handle:
+#     output = pickle.load(handle)
+# print(output.keys())
+# print(output[0])
