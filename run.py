@@ -8,7 +8,7 @@ import networkx as nx
 # from hgDecompose.newhgDecompose import HGDecompose
 from hgDecompose.optimizedhgDecompose import HGDecompose
 from hgDecompose.utils import get_hg, memory_usage_psutil,get_localhg,check_connectivity
-from hgDecompose.influence_propagation import propagate_for_all_vertices, propagate_for_random_seeds, run_intervention_exp2,run_intervention_exp2_explain
+from hgDecompose.influence_propagation import propagate_for_all_vertices, propagate_for_random_seeds, run_intervention_exp2,run_intervention_exp2_explain,run_intervention_exp2_explain_splen
 from hgDecompose.sis_propagation import propagateSIS_for_all_vertices
 import argparse
 import pandas as pd
@@ -30,6 +30,7 @@ parser.add_argument("--sir", action='store_true')
 parser.add_argument("--sir_exp2", action='store_true')
 parser.add_argument("--sir_exp3", action='store_true') # intervention
 parser.add_argument("--sir_exp3_explanation", action = 'store_true')
+parser.add_argument("--sir_exp3_explanation_splen", action = 'store_true')
 parser.add_argument("--con", help="Is connected hypergraph", action='store_true')
 parser.add_argument("-p", "--prob", help="parameter for Probability", default= 0.3, type=float)
 parser.add_argument("-g", "--gamma", help="parameter for Probability", default= 0.01, type=float)
@@ -42,7 +43,7 @@ if (args.con):
     quit()
 
 # Pandemic propagation
-if(args.sir or args.sir_exp2 or args.sir_exp3 or args.sir_exp3_explanation):
+if(args.sir or args.sir_exp2 or args.sir_exp3 or args.sir_exp3_explanation or args.sir_exp3_explanation_splen):
 
     input_H = get_hg(args.dataset)
 
@@ -100,6 +101,8 @@ if(args.sir or args.sir_exp2 or args.sir_exp3 or args.sir_exp3_explanation):
         entry['exp'] = "sir_exp3"
     elif(args.sir_exp3_explanation):
         entry['exp'] = 'sir_exp3_explanation'
+    elif(args.sir_exp3_explanation_splen):
+        entry['exp'] = 'sir_exp3_explanation_splen'
     else:
         raise NotImplementedError()
 
@@ -117,7 +120,10 @@ if(args.sir or args.sir_exp2 or args.sir_exp3 or args.sir_exp3_explanation):
         # entry['intervention_results'] = run_intervention_exp2(args.dataset+"_"+args.algo, original_n = len(H.nodes()), p = float(args.prob),verbose = args.verbose)
         entry['intervention_results'] = run_intervention_exp2(args.dataset+"_"+args.algo, original_n = None, p = float(args.prob),verbose = args.verbose)
     elif(args.sir_exp3_explanation):
-        run_intervention_exp2_explain(args.dataset+"_"+args.algo, original_n = len(H.nodes()), p = float(args.prob),verbose = args.verbose)
+        run_intervention_exp2_explain(args.dataset+"_"+args.algo,verbose = args.verbose)
+        quit()
+    elif(args.sir_exp3_explanation_splen):
+        run_intervention_exp2_explain_splen(args.dataset+"_"+args.algo,verbose = args.verbose)
         quit()
     result = pd.DataFrame()
     result = result.append(entry, ignore_index=True)

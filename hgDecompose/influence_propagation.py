@@ -3,7 +3,7 @@ import numpy as np
 from copy import deepcopy
 from multiprocessing import Pool
 import os,pickle 
-from hgDecompose.utils import check_connectivity,component_sz,save_dict
+from hgDecompose.utils import check_connectivity,component_sz,save_dict,avg_shortest_pathlen
 
 def propagate_for_all_vertices(H, core, num_vertex_per_core = 100, top_k = 100,  p = 0.5, num_iterations = 100, original_n = None, verbose=True):
 
@@ -93,7 +93,7 @@ def run_intervention_exp2(name, original_n, p = 0.5, verbose = False):
                     result[k][core_number].append(propagate2(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0])
     return result 
 
-def run_intervention_exp2_explain(name, original_n, p = 0.5, verbose = False):
+def run_intervention_exp2_explain(name, verbose = False):
     path = '/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'.pkl'
     with open(os.path.join(path), 'rb') as handle:
         data = pickle.load(handle)
@@ -123,14 +123,53 @@ def run_intervention_exp2_explain(name, original_n, p = 0.5, verbose = False):
         for core_number in distinct_core_numbers[:100]:
             print('core: ',core_number)
             result[k][core_number] = {}
-            for v in random.choices(core_to_vertex_map[core_number], k=20):
+            for v in random.choices(core_to_vertex_map[core_number], k=100):
                 # if(core_number not in result):
                 #     result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0]]
                 # else:
                 #     result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0])
                 result[k][core_number][v] = component_sz(v,H)
-        save_dict(result)
+    save_dict(result,'/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'_comp.pkl')
         
+def run_intervention_exp2_explain_splen(name, verbose = False):
+    path = '/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'.pkl'
+    with open(os.path.join(path), 'rb') as handle:
+        data = pickle.load(handle)
+        print("loaded ",path)
+    result = {}
+    for k in data:
+        # if (k!=2):
+        #     continue  
+        print('Core deletion#: ', k)
+        result[k] = {}
+        temp_core = data[k]['core']
+        H = data[k]['H']
+        print('N: ',len(H.inc_dict))
+        # check_connectivity(H)
+        # continue 
+        core_to_vertex_map = {}
+        distinct_core_numbers = []
+        for v in temp_core:
+            if(temp_core[v] not in core_to_vertex_map):
+                core_to_vertex_map[temp_core[v]] = [v]
+                distinct_core_numbers.append(temp_core[v])
+            else:
+                core_to_vertex_map[temp_core[v]].append(v)
+
+        distinct_core_numbers.sort(reverse=True)
+
+        for core_number in distinct_core_numbers[:100]:
+            print('core: ',core_number)
+            result[k][core_number] = {}
+            for v in random.choices(core_to_vertex_map[core_number], k=100):
+                # if(core_number not in result):
+                #     result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0]]
+                # else:
+                #     result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0])
+                result[k][core_number][v] = avg_shortest_pathlen(v,H,100)
+                if (verbose):
+                    print('v ',v,' avg SP length: ',result[k][core_number][v])
+    save_dict(result,'/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'_sp.pkl')
 
 def run_intervention_exp(H, core, p = 0.5, verbose = False):
     # print(core)

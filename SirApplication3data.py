@@ -39,7 +39,7 @@ def gen_nested_hypergraph():
         if(args.algo == "naive_nbr"):
             hgDecompose.naiveNBR(input_H, verbose=False)
         if(args.algo == "naive_degree"):
-            hgDecompose.naiveDeg(input_H, verbose=args.verbose)
+            hgDecompose.naiveDeg(input_H, verbose=False)
 
         if(args.algo == "graph_core"):
             G = input_H.get_clique_graph()
@@ -91,14 +91,16 @@ def gen_nested_hypergraph():
             pickle.dump(output, handle, protocol= 4)
 
 
-gen_nested_hypergraph()
+# gen_nested_hypergraph()
 
-# pathstring = "/Users/nus/hg-core-decomposition/data/datasets/sirdata/"
-# args = parser.parse_args()
-# name = args.dataset
-# algoname = args.algo
-# level = int(args.level)
+pathstring = "/Users/nus/hg-core-decomposition/data/datasets/sirdata/"
+args = parser.parse_args()
+name = args.dataset
+algoname = args.algo
+level = int(args.level)
+with open(os.path.join(pathstring,name+'_'+algoname+'_comp.pkl'), 'rb') as handle:
 # with open(os.path.join(pathstring,name+'_'+algoname+'.pkl'), 'rb') as handle:
-#     output = pickle.load(handle)
-# print(output.keys())
-# print(output[0])
+    output = pickle.load(handle)
+print(output.keys())
+print('H0: ',output[0])
+print('H1: ',output[1])

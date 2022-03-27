@@ -598,7 +598,7 @@ class HGDecompose():
         start_loop_time = time()
         for k in range(1, num_nodes + 1):
             while len(bucket.get(k, [])) != 0:
-                print(k)
+                # print(k)
                 v = bucket[k].pop()  # get first element in the
                 
                 if(verbose):

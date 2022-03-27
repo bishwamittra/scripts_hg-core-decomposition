@@ -5,8 +5,10 @@ from hgDecompose.Hypergraph import Hypergraph
 from hgDecompose.IncidenceRep import HypergraphL
 import random
 import heapq
+from hgDecompose.heapdict import heapdict
 from disjoint_set import DisjointSet
 import pickle
+import math 
 
 scalability_datasets = ['enron_'+str(i) for i in range(10)] + ['dblp_'+str(i) for i in range(10)] + ['pref_'+str(i) for i in range(10)]
 scal_dataset_to_filename = {}
@@ -729,6 +731,39 @@ def component_sz(v,hg):
     # print(len(list(ds.itersets())))
     # assert len(traversed) == len(hg.inc_dict)
     return len(traversed)
+
+def avg_shortest_pathlen(source, hg, number_of_targets,verbose = True):
+    """ Dijkstra's algorithm on hypergraph """
+    V = list(hg.inc_dict.keys())
+    dist = {}
+    traversed = {}
+    for u in V:
+        dist[u] = math.inf
+        traversed[u] = False 
+    # for u in random.choices(V,k = number_of_targets):
+    #     # Compute number of edges in between u~v 
+    #     dist[u] = math.inf
+
+    dist[source] = 0
+    heap = heapdict()
+    heap[source] = 0
+    traversed[source] = True 
+    while len(heap):
+        v, dist_v = heap.popitem()
+        for e in hg.inc_dict[v]:
+            edge = hg.get_edge_byindex(e)
+            for u in edge:
+                if not traversed[u]:
+                    dist_root =  dist_v + 1    
+                    if dist_root < dist[u]:
+                        dist[u] = dist_root
+                        heap[u] = dist_root
+    # if (verbose):
+    #     print('shortest paths: ',source,' = ')
+    #     print(dist)
+
+    dists = [ dist[u] for u in random.choices(V,k = number_of_targets) ]
+    return np.mean(dists)
 
 def save_dict(dict,fname = 'tests/tmp/temp.pkl'):
     """ Save a dictionary """

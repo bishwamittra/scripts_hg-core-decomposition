@@ -1,7 +1,3 @@
-"""
-Code adapted from https://github.com/DanielStutzbach/heapdict
-Acknowledgement: https://github.com/DanielStutzbach/
-"""
 try:
     from collections.abc import MutableMapping
 except ImportError:
