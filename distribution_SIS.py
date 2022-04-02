@@ -8,12 +8,12 @@ parser.add_argument("--max_thread", help="maximum number of thread", default=1, 
 args = parser.parse_args()
 
 # algo_list = ['naive_nbr', 'naive_degree']
-algo_list = ['naive_nbr']
+algo_list = ['naive_nbr','naive_degree','graph_core']
 # dataset_list = ['bin_1', 'bin_2', 'bin_4', 'bin_5', 'enron',  'contact', 'congress']
-dataset_list = ['enron']
+dataset_list = ['enron', 'congress']
 # dataset_list = ['bin_1']
 # exps = ['sir', 'sir_exp2', 'sir_exp3']
-exps = ['sir_exp3']
+exps = ['sir_exp3_explanation_splen']
 
 # all combination of experiments
 configurations = []

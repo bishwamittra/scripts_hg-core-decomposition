@@ -94,7 +94,7 @@ def run_intervention_exp2(name, original_n, p = 0.5, verbose = False):
     return result 
 
 def run_intervention_exp2_explain(name, verbose = False):
-    path = '/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'.pkl'
+    path = 'data/datasets/sirdata/'+name+'.pkl'
     with open(os.path.join(path), 'rb') as handle:
         data = pickle.load(handle)
         print("loaded ",path)
@@ -122,17 +122,19 @@ def run_intervention_exp2_explain(name, verbose = False):
 
         for core_number in distinct_core_numbers[:100]:
             print('core: ',core_number)
-            result[k][core_number] = {}
+            # result[k][core_number] = {}
+            tmp = {}
             for v in random.choices(core_to_vertex_map[core_number], k=100):
                 # if(core_number not in result):
                 #     result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0]]
                 # else:
                 #     result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0])
-                result[k][core_number][v] = component_sz(v,H)
-    save_dict(result,'/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'_comp.pkl')
+                tmp[v] = component_sz(v,H)
+            result[k][core_number] = np.mean(list(tmp.values()))
+    save_dict(result,'data/output/'+name+'_comp2.pkl')
         
 def run_intervention_exp2_explain_splen(name, verbose = False):
-    path = '/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'.pkl'
+    path = 'data/datasets/sirdata/'+name+'.pkl'
     with open(os.path.join(path), 'rb') as handle:
         data = pickle.load(handle)
         print("loaded ",path)
@@ -160,16 +162,20 @@ def run_intervention_exp2_explain_splen(name, verbose = False):
 
         for core_number in distinct_core_numbers[:100]:
             print('core: ',core_number)
-            result[k][core_number] = {}
+            # result[k][core_number] = {}
+            tmp = {}
             for v in random.choices(core_to_vertex_map[core_number], k=100):
                 # if(core_number not in result):
                 #     result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0]]
                 # else:
                 #     result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0])
-                result[k][core_number][v] = avg_shortest_pathlen(v,H,100)
+                # result[k][core_number][v] = avg_shortest_pathlen(v,H,100)
+                tmp[v] = avg_shortest_pathlen(v,H,100)
                 if (verbose):
                     print('v ',v,' avg SP length: ',result[k][core_number][v])
-    save_dict(result,'/Users/nus/hg-core-decomposition/data/datasets/sirdata/'+name+'_sp.pkl')
+            result[k][core_number] = np.mean(list(tmp.values()))
+    # save_dict(result,'data/output/'+name+'_sp.pkl')
+    save_dict(result,'data/output/'+name+'_sp2.pkl')
 
 def run_intervention_exp(H, core, p = 0.5, verbose = False):
     # print(core)

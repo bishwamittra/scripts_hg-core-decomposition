@@ -762,7 +762,14 @@ def avg_shortest_pathlen(source, hg, number_of_targets,verbose = True):
     #     print('shortest paths: ',source,' = ')
     #     print(dist)
 
-    dists = [ dist[u] for u in random.choices(V,k = number_of_targets) ]
+    # dists = [ dist[u] for u in random.choices(V,k = number_of_targets) ]
+    dists = [0]*number_of_targets
+    i = 0
+    while i<number_of_targets:
+        u = random.choice(V)
+        if dist[u] is not math.inf:
+            dists[i] = dist[u]
+            i+=1
     return np.mean(dists)
 
 def save_dict(dict,fname = 'tests/tmp/temp.pkl'):
