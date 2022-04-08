@@ -36,3 +36,7 @@ python -u distribution_SIS.py --thread $mythread --max_thread $numthreads > data
 
 # kill $(ps aux | grep 'NNdhUiT' | grep 'python' | awk '{print $2}')
 #  scp data/datasets/sirdata/*.pkl NNdhUiT@BigGraph.scse.ntu.edu.sg:/data1/Naheed/hgDecompose/data/datasets/sirdata
+# For generating results for fig 25(b): python -W ignore -u run.py --algo naive_nbr --dataset enron --sir_exp3_explanation
+# For generating results for fig 25(c): python -W ignore -u run.py --algo naive_nbr --dataset enron --sir_exp3_explanation_splen
+#
+#

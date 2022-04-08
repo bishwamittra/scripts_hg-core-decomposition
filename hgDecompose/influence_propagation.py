@@ -131,7 +131,7 @@ def run_intervention_exp2_explain(name, verbose = False):
                 #     result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0])
                 tmp[v] = component_sz(v,H)
             result[k][core_number] = np.mean(list(tmp.values()))
-    save_dict(result,'data/output/'+name+'_comp2.pkl')
+    save_dict(result,'data/output/'+name+'_comp3.pkl')
         
 def run_intervention_exp2_explain_splen(name, verbose = False):
     path = 'data/datasets/sirdata/'+name+'.pkl'
@@ -175,7 +175,7 @@ def run_intervention_exp2_explain_splen(name, verbose = False):
                     print('v ',v,' avg SP length: ',result[k][core_number][v])
             result[k][core_number] = np.mean(list(tmp.values()))
     # save_dict(result,'data/output/'+name+'_sp.pkl')
-    save_dict(result,'data/output/'+name+'_sp2.pkl')
+    save_dict(result,'data/output/'+name+'_sp3.pkl')
 
 def run_intervention_exp(H, core, p = 0.5, verbose = False):
     # print(core)
