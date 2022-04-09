@@ -22,9 +22,9 @@ def del_innercore(H, diction):
 
 def gen_nested_hypergraph():
     # Delete innermost core 10 times, each time operating on the hypergraph from previous iteration.
-    pathstring = "/Users/nus/hg-core-decomposition/data/datasets/sirdata/"
+    pathstring = "data/datasets/sirdata/"
     output = {} 
-
+    os.system('mkdir -p '+pathstring)
     os.system("mkdir -p tests/tmp")
     args = parser.parse_args()
     
@@ -87,20 +87,20 @@ def gen_nested_hypergraph():
         output[i]['core'] = core_base
         remainder_vertices = del_innercore(output[i]['H'], core_base)
     
-    with open(os.path.join(pathstring,name+'_'+algoname+'.pkl'), 'wb') as handle:
+    with open(os.path.join(pathstring,name+'_'+algoname+'_tmp.pkl'), 'wb') as handle:
             pickle.dump(output, handle, protocol= 4)
 
 
 # gen_nested_hypergraph()
 
-pathstring = "/Users/nus/hg-core-decomposition/data/datasets/sirdata/"
-args = parser.parse_args()
-name = args.dataset
-algoname = args.algo
-level = int(args.level)
-with open(os.path.join(pathstring,name+'_'+algoname+'_comp.pkl'), 'rb') as handle:
-# with open(os.path.join(pathstring,name+'_'+algoname+'.pkl'), 'rb') as handle:
-    output = pickle.load(handle)
-print(output.keys())
-print('H0: ',output[0])
-print('H1: ',output[1])
+# pathstring = "data/datasets/sirdata/"
+# args = parser.parse_args()
+# name = args.dataset
+# algoname = args.algo
+# level = int(args.level)
+# with open(os.path.join(pathstring,name+'_'+algoname+'_tmp.pkl'), 'rb') as handle:
+# # with open(os.path.join(pathstring,name+'_'+algoname+'.pkl'), 'rb') as handle:
+#     output = pickle.load(handle)
+# print(output.keys())
+# print('H0: ',output[0])
+# print('H1: ',output[1])
