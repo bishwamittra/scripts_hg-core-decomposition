@@ -732,9 +732,9 @@ def component_sz(v,hg):
     # assert len(traversed) == len(hg.inc_dict)
     return len(traversed)
 
-def avg_shortest_pathlen(source, hg, number_of_targets,verbose = True):
+def avg_shortest_pathlen(source, hg, number_of_targets, V, constant_M, verbose = True):
     """ Dijkstra's algorithm on hypergraph """
-    V = list(hg.inc_dict.keys())
+    # V = list(hg.inc_dict.keys())
     dist = {}
     traversed = {}
     for u in V:
@@ -765,12 +765,23 @@ def avg_shortest_pathlen(source, hg, number_of_targets,verbose = True):
     # dists = [ dist[u] for u in random.choices(V,k = number_of_targets) ]
     dists = [0]*number_of_targets
     i = 0
-    while i<number_of_targets:
+
+    while i < number_of_targets:
         u = random.choice(V)
-        if dist[u] is not math.inf:
+        if dist[u] is not math.inf:  
             dists[i] = dist[u]
-            i+=1
+        else:
+            dists[i] = constant_M
+        i+=1
     return np.mean(dists)
+
+
+    # while i<number_of_targets:
+    #     u = random.choice(V)
+    #     if dist[u] is not math.inf:
+    #         dists[i] = dist[u]
+    #         i+=1
+    # return np.mean(dists)
 
 def save_dict(dict,fname = 'tests/tmp/temp.pkl'):
     """ Save a dictionary """

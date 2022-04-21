@@ -87,18 +87,18 @@ def gen_nested_hypergraph():
         output[i]['core'] = core_base
         remainder_vertices = del_innercore(output[i]['H'], core_base)
     
-    with open(os.path.join(pathstring,name+'_'+algoname+'_tmp.pkl'), 'wb') as handle:
+    with open(os.path.join(pathstring,name+'_'+algoname+'.pkl'), 'wb') as handle:
             pickle.dump(output, handle, protocol= 4)
 
 
-# gen_nested_hypergraph()
+gen_nested_hypergraph()
 
 # pathstring = "data/datasets/sirdata/"
 # args = parser.parse_args()
 # name = args.dataset
 # algoname = args.algo
 # level = int(args.level)
-# with open(os.path.join(pathstring,name+'_'+algoname+'_tmp.pkl'), 'rb') as handle:
+# with open(os.path.join(pathstring,name+'_'+algoname+'.pkl'), 'rb') as handle:
 # # with open(os.path.join(pathstring,name+'_'+algoname+'.pkl'), 'rb') as handle:
 #     output = pickle.load(handle)
 # print(output.keys())

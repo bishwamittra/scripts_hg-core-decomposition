@@ -138,6 +138,70 @@ def run_intervention_exp2_explain_splen(name, verbose = False):
     with open(os.path.join(path), 'rb') as handle:
         data = pickle.load(handle)
         print("loaded ",path)
+
+    result = {}
+
+
+    # record samples for the innermost core
+    assert 0 in data # to check if H0 is in data
+    H0_core = data[0]['core'] 
+    constant_M = data[0]['H'].get_M() 
+    H0_V = list(data[0]['H'].inc_dict.keys())
+
+    print("Max sp:", constant_M)
+
+    for k in data:
+        print("\n\n\n", k)
+        # if (k!=2):
+        #     continue  
+        result[k] = {}
+        temp_core = data[k]['core']
+        H = data[k]['H']
+        print('N: ',len(H.inc_dict))
+        # check_connectivity(H)
+        # continue 
+        core_to_vertex_map = {}
+        distinct_core_numbers = []
+        for v in temp_core:
+            if(temp_core[v] not in core_to_vertex_map):
+                core_to_vertex_map[temp_core[v]] = [v]
+                distinct_core_numbers.append(temp_core[v])
+            else:
+                core_to_vertex_map[temp_core[v]].append(v)
+
+        distinct_core_numbers.sort(reverse=True)
+
+        for core_number in distinct_core_numbers[:100]:
+            print('core: ',core_number)
+            # result[k][core_number] = {}
+            tmp = {}
+            for v in random.choices(core_to_vertex_map[core_number], k=100):
+                # conditional sampling
+                # if(H0_core[v] != core_number):
+                #     # print("Do not consider", v)
+                #     continue
+
+                # if(core_number not in result):
+                #     result[core_number] = [propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0]]
+                # else:
+                #     result[core_number].append(propagate(H, starting_vertex=v, p = p, num_iterations = 100, original_n = original_n, verbose = verbose)[0])
+                # result[k][core_number][v] = avg_shortest_pathlen(v,H,100)
+                tmp[v] = avg_shortest_pathlen(v,H,100, H0_V, constant_M)
+                if (verbose):
+                    print('v ',v,' avg SP length: ',result[k][core_number][v])
+            
+            print(tmp)
+            result[k][core_number] = np.mean(list(tmp.values()))
+    
+
+    print("Done, hurrah")
+    save_dict(result,'data/output/'+name+'_sp3.pkl')
+
+def run_intervention_exp2_explain_splen_prev(name, verbose = False):
+    path = 'data/datasets/sirdata/'+name+'.pkl'
+    with open(os.path.join(path), 'rb') as handle:
+        data = pickle.load(handle)
+        print("loaded ",path)
     result = {}
     for k in data:
         # if (k!=2):
@@ -176,6 +240,7 @@ def run_intervention_exp2_explain_splen(name, verbose = False):
             result[k][core_number] = np.mean(list(tmp.values()))
     # save_dict(result,'data/output/'+name+'_sp.pkl')
     save_dict(result,'data/output/'+name+'_sp3.pkl')
+
 
 def run_intervention_exp(H, core, p = 0.5, verbose = False):
     # print(core)
