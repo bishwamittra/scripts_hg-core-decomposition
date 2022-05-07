@@ -15,7 +15,7 @@ args = parser.parse_args()
 # algo_list = ['improved_nbr_simple']
 # algo_list = ['improved_local_core']
 # algo_list = ['graph_core','naive_degree']
-algo_list = ['naive_nbr']
+algo_list = ['top_down']
 # algo_list = ['improved2_nbr']
 # algo_list = ['opt_local_coreII']
 # algo_list = ['opt_local_coreI','opt_local_coreII','opt_local_coreIII']
@@ -79,7 +79,7 @@ for dataset in dataset_list:
 # distributing among threads
 for i, configuration in enumerate(configurations):
     algo, dataset, s, nthreads = configuration
-    s = 1
+    s = 3
     if(i%args.max_thread == args.thread or args.thread == -1):
         cmd = "python -W ignore -u -m tests.test" + \
               " --algo " + algo + \

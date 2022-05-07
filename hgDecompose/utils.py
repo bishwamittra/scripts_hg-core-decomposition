@@ -365,6 +365,27 @@ def get_random_hg(n = 10, m = 5, edge_size_ub = None, seed = 1):
         m = m-1
     return Hypergraph(Edict)
 
+def get_random_graph(n = 10, m = 5, seed = 1):
+    """ 
+    Returns a random hypergraph with n vertices and m edges. 
+    Generate V = {1,2,..,n} 
+    Generate E = Take m randomly chosen subsets of V.
+    If edge_size_ub is not None, assume every hyperedge can have at most edge_size_ub vertices in it.
+    """
+    random.seed(seed)
+    V = set(range(1, n+1))
+    Edict = {}
+    exists = {}
+    while m:
+        e = random.sample(V, 2)
+        if e[1]<e[0]:
+            e[0],e[1] = e[1],e[0]
+        if not exists.get((e[0],e[1]),False):
+            exists[(e[0],e[1])] = True
+            Edict[m] = (e[0],e[1])
+            m = m-1
+    return Hypergraph(Edict)
+
 def get_basic_hg(dataset):
     from hgDecompose.BasicHypergraph import Hypergraph as HypergraphBasic
     H = None

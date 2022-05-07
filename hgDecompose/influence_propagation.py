@@ -171,8 +171,8 @@ def run_intervention_exp2_explain_splen(name, verbose = False):
 
         distinct_core_numbers.sort(reverse=True)
 
-        for core_number in distinct_core_numbers[:100]:
-            print('core: ',core_number)
+        for core_number in distinct_core_numbers[:200]:
+            # print('core: ',core_number)
             # result[k][core_number] = {}
             tmp = {}
             for v in random.choices(core_to_vertex_map[core_number], k=100):
@@ -190,12 +190,12 @@ def run_intervention_exp2_explain_splen(name, verbose = False):
                 if (verbose):
                     print('v ',v,' avg SP length: ',result[k][core_number][v])
             
-            print(tmp)
+            # print(tmp)
             result[k][core_number] = np.mean(list(tmp.values()))
     
 
     print("Done, hurrah")
-    save_dict(result,'data/output/'+name+'_sp3.pkl')
+    save_dict(result,'data/output/'+name+'_sp4.pkl')
 
 def run_intervention_exp2_explain_splen_prev(name, verbose = False):
     path = 'data/datasets/sirdata/'+name+'.pkl'

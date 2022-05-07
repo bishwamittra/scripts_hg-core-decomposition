@@ -235,32 +235,52 @@ elif(args.algo == "improved_nbr_simple"):
         
 elif(args.algo == "naive_degree"):
     hgDecompose.naiveDeg(H, verbose=args.verbose)
-
+elif (args.algo == "top_down"):
+    from hgDecompose.optimizedGDecompose import HDecompose 
+    hgDecompose = HDecompose()
+    hgDecompose.top_down(H, s=args.param_s, verbose=False)
 elif(args.algo == "improved2_nbr"):
     assert args.param_s > 0 # Is this assertion valid?
     # scenes = {
-    #     1: ('b', 'd'),
-    #     2: ('d', 'a', 'h'),
-    #     3: ('h', 'c', 'e', 'g')
+    #     1: ('c', 'e'),
+    #     2: ('a', 'c', 'b'),
+    #     3: ('a', 'c', 'd')
     # }
+    scenes = {
+        1: ('c', 'e'),
+        2: ('a', 'b'),
+        3: ('b', 'c'),
+        4: ('a', 'c'),
+        5: ('c', 'd'),
+        6: ('a','d')
+    }
     # H = Hypergraph(scenes)
     # Hg_cpy = Hypergraph(scenes)
     # hgDecompose = HGDecompose()
-    hgDecompose.improved2NBR(H, s=args.param_s, verbose=args.verbose)
-    # print(hgDecompose.core)
+    # hgDecompose.improved2NBR(H, s=args.param_s, verbose=False)
     # core_compared = hgDecompose.core
-    # hgDecompose = HGDecompose()
-    # hgDecompose.naiveNBR(Hg_cpy, verbose=args.verbose)
-    # core_base = hgDecompose.core
-    # for v in core_base:
-    #     assert v in core_compared, str(v) + " is not in core_compared"
-    #     assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
-    
-    # for v in core_compared:
-    #     assert v in core_base, str(v) + " is not in core_base"
-    #     assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
+    # print('Topdown: ',sorted(core_compared.items()))
+    """ For graph """
+    H = Hypergraph(scenes)
+    hgDecompose = HGDecompose()
+    hgDecompose.Graph_top_down(H, s=args.param_s, verbose=False)
+    core_compared = hgDecompose.core
+    print('Topdown: ',sorted(core_compared.items()))
 
-    # exit(1)
+    Hg_cpy = Hypergraph(scenes)
+    hgDecompose = HGDecompose()
+    hgDecompose.naiveNBR(Hg_cpy, verbose=args.verbose)
+    core_base = hgDecompose.core
+    print('Baseline: ',sorted(core_base.items()))
+    for v in core_base:
+        assert v in core_compared, str(v) + " is not in core_compared"
+        assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
+    
+    for v in core_compared:
+        assert v in core_base, str(v) + " is not in core_base"
+        assert core_base[v] == core_compared[v], str(v)+" :Output core is different in " + str(core_base[v]) + " & " + str(core_compared[v])
+    print('Correct')
+    exit(1)
 
 elif (args.algo == 'par_improved2_nbr'):
     assert args.param_s > 0 # Is this assertion valid?

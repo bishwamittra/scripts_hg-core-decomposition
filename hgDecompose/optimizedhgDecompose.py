@@ -1163,7 +1163,8 @@ class HGDecompose():
             print()
 
         # start_loop_time = time()
-        print('-- ',lb1,ub1,'---')
+        if (verbose):
+            print('-- ',lb1,ub1,'---')
         for k in range(lb1, ub1 + 1):
             while len(bucket.get(k, [])) != 0:
                 v = bucket[k].pop()  # get first element in the
@@ -1187,7 +1188,7 @@ class HGDecompose():
                     if verbose:
                         print('k=',k, ' Bucket: ',bucket)
                 else:
-                    # print('assigning core: ',v)
+                    print('assigning core: ',v)
                     self.core[v] = k
                     # setlb[v] = True
 
@@ -1204,7 +1205,7 @@ class HGDecompose():
                     for u in nbr_v:
                         self.total_iteration += 1
                         if not setlb[u]:
-                            # print('updating neighbor(v)', u)
+                            print('updating neighbor(v)', u)
                             self.inner_iteration += 1
                             start_neighborhood_call = time()
                             len_neighbors_u = H.get_number_of_nbrs(u)
@@ -1348,7 +1349,7 @@ class HGDecompose():
                 print('Partial Core: ',self.core)
                 print("Bucket: ",final_bucket)
                 print("setLB: ",setlb)
-                print("----------------------")
+                print("=================")
             # for k in range(lower-1, upper+1):
             #     if(verbose):
             #         print('k=',k)
